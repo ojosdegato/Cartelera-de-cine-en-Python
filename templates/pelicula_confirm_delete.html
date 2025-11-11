@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    
+    <!-- Carga de Bootstrap 5.3 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Carga de FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS Personalizado (Azul/Blanco y Alerta) -->
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
+        .navbar { background-color: #003366 !important; }
+        .confirmation-card {
+            max-width: 600px;
+            margin: 5rem auto;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.2); /* Sombra roja de alerta */
+            border-top: 5px solid #dc3545; /* Borde superior rojo */
+        }
+        .text-danger-strong { color: #dc3545 !important; font-weight: bold; }
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #c82333;
+        }
+        .detail-label { font-weight: 600; color: #555; }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <nav class="navbar navbar-expand-lg navbar-dark shadow sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/"><i class="fas fa-ticket-alt me-2"></i> Cartelera de Cine</a>
+        </div>
+    </nav>
+
+    <!-- CUERPO PRINCIPAL / CONFIRMACIÓN -->
+    <main class="container">
+        <div class="confirmation-card card text-center">
+            <div class="card-body p-4 p-md-5">
+                
+                <i class="fas fa-exclamation-triangle fa-3x text-danger-strong mb-4"></i>
+                
+                <h1 class="h3 mb-3 text-danger-strong">Confirmación de Acción Crítica</h1>
+                
+                <p class="lead">
+                    Estás a punto de eliminar la siguiente película de forma **permanente** de la base de datos.
+                </p>
+                
+                <div class="alert alert-light border border-danger text-start p-3 my-4">
+                    <p class="mb-1">
+                        <span class="detail-label">Título:</span> 
+                        <strong class="text-secondary">{{ pelicula.titulo }}</strong> 
+                        <span class="badge bg-secondary ms-2">{{ pelicula.id }}</span>
+                    </p>
+                    <p class="mb-0">
+                        <span class="detail-label">Director:</span> 
+                        {{ pelicula.director if pelicula.director else 'Desconocido' }}
+                    </p>
+                </div>
+                
+                <p class="text-muted small mb-4">
+                    <i class="fas fa-info-circle me-1"></i> Esta acción no se puede deshacer.
+                </p>
+
+                <!-- Formulario de ELIMINACIÓN (Método POST) -->
+                <form action="/peliculas/eliminar/{{ pelicula.id }}" method="post" class="d-grid gap-3">
+                    
+                    <button type="submit" class="btn btn-danger btn-lg shadow-sm">
+                        <i class="fas fa-trash-alt me-2"></i> SÍ, ELIMINAR PERMANENTEMENTE
+                    </button>
+                    
+                    <a href="/peliculas/{{ pelicula.id }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-undo me-2"></i> Cancelar y Volver al Detalle
+                    </a>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Carga de Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

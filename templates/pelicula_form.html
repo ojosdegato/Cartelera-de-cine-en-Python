@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - Cartelera TIC</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Iconos de Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0d6efd;
+            --secondary-blue: #003366;
+            --light-bg: #f8f9fa;
+        }
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Inter', sans-serif;
+        }
+        .form-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: var(--secondary-blue);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1.5rem;
+        }
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-blue);
+            border-color: var(--secondary-blue);
+        }
+        .form-check-input:checked {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <div class="card-header text-center">
+                <h1 class="h3 mb-0">{{ titulo }}</h1>
+                <p class="mb-0 fs-6">Gestión de la Ficha Técnica de la Película</p>
+            </div>
+            
+            <!-- 
+                Lógica CRÍTICA del formulario:
+                - Si 'pelicula' existe (edición), la acción apunta a /peliculas/editar/ID
+                - Si 'pelicula' NO existe (creación), la acción apunta a /peliculas/nueva
+            -->
+            <form action="/peliculas/{{ 'editar/' + pelicula.id|string if pelicula else 'nueva' }}" method="post" class="p-4">
+
+                <div class="row g-3 mb-4">
+                    <!-- TÍTULO -->
+                    <div class="col-md-8">
+                        <label for="titulo" class="form-label fw-bold">Título <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="titulo" name="titulo" 
+                               value="{{ pelicula.titulo if pelicula else '' }}" required>
+                    </div>
+
+                    <!-- DURACIÓN -->
+                    <div class="col-md-4">
+                        <label for="duracion" class="form-label fw-bold">Duración (min) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="duracion" name="duracion" min="1" 
+                               value="{{ pelicula.duracion if pelicula else '' }}" required>
+                    </div>
+
+                    <!-- GÉNERO -->
+                    <div class="col-md-6">
+                        <label for="genero_id" class="form-label fw-bold">Género <span class="text-danger">*</span></label>
+                        <select class="form-select" id="genero_id" name="genero_id" required>
+                            <option value="">-- Seleccione un Género --</option>
+                            {% for genero in generos %}
+                                <option value="{{ genero.id }}" 
+                                        {% if pelicula and genero.id == pelicula.genero_id %}selected{% endif %}>
+                                    {{ genero.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- DIRECTOR -->
+                    <div class="col-md-6">
+                        <label for="director" class="form-label fw-bold">Director (Opcional)</label>
+                        <input type="text" class="form-control" id="director" name="director" 
+                               value="{{ pelicula.director if pelicula and pelicula.director else '' }}">
+                    </div>
+
+                    <!-- DESCRIPCIÓN -->
+                    <div class="col-12">
+                        <label for="descripcion" class="form-label fw-bold">Descripción (Opcional)</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3">{{ pelicula.descripcion if pelicula and pelicula.descripcion else '' }}</textarea>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE DETALLES ADICIONALES -->
+                <h5 class="mt-4 mb-3 text-secondary">Detalles Adicionales</h5>
+
+                <div class="row g-3">
+                    <!-- PRODUCTORA -->
+                    <div class="col-md-4">
+                        <label for="productora" class="form-label">Productora</label>
+                        <input type="text" class="form-control" id="productora" name="productora" 
+                               value="{{ pelicula.productora if pelicula and pelicula.productora else '' }}">
+                    </div>
+                    
+                    <!-- IDIOMA -->
+                    <div class="col-md-4">
+                        <label for="idioma" class="form-label">Idioma</label>
+                        <input type="text" class="form-control" id="idioma" name="idioma" 
+                               value="{{ pelicula.idioma if pelicula and pelicula.idioma else '' }}">
+                    </div>
+
+                    <!-- TRAILER -->
+                    <div class="col-md-4">
+                        <label for="trailer" class="form-label">URL del Trailer</label>
+                        <input type="url" class="form-control" id="trailer" name="trailer" 
+                               value="{{ pelicula.trailer if pelicula and pelicula.trailer else '' }}">
+                    </div>
+
+                    <!-- ACTORES -->
+                    <div class="col-12">
+                        <label for="actores" class="form-label fw-bold">Actores (Separados por coma: ej. Actor 1, Actor 2)</label>
+                        <input type="text" class="form-control" id="actores" name="actores" 
+                               value="{{ pelicula.actores|join(', ') if pelicula and pelicula.actores else '' }}">
+                    </div>
+                </div>
+
+                <!-- CHECKBOXES BOOLEANOS -->
+                <div class="row mt-4 mb-4 border-top pt-3">
+                    <!-- DISPONIBLE -->
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="disponible" name="disponible" 
+                                   value="True" {% if pelicula and pelicula.disponible %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="disponible">
+                                Disponible en Cartelera (Activo)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- VOSE -->
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="vose" name="vose" 
+                                   value="True" {% if pelicula and pelicula.vose %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="vose">
+                                Versión Original Subtitulada (VOSE)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTONES DE ACCIÓN -->
+                <div class="d-flex justify-content-between pt-3">
+                    <a href="/" class="btn btn-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> 
+                        {% if pelicula %}Guardar Cambios{% else %}Añadir Película{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

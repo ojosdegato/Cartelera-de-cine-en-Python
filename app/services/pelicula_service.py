@@ -1,10 +1,11 @@
 # app/services/pelicula_service.py
 # Lógica de negocio (CRUD) para el módulo de Películas
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.models.pelicula import PeliculaORM
 from app.schemas.pelicula import PeliculaCreate, PeliculaUpdate
 from typing import List, Optional
+
 
 # --- Servicio 1: Añadir película ---
 def add_pelicula(db: Session, pelicula: PeliculaCreate) -> PeliculaORM:
@@ -73,3 +74,12 @@ def delete_pelicula(db: Session, pelicula_id: int) -> bool:
         db.commit()
         return True
     return False
+
+# ESTA FUNCIÓN ES UN SERVICIO PURO, SIN DECORADORES DE FASTAPI
+def get_pelicula_detalle(db: Session, pelicula_id: int) -> Optional[PeliculaORM]:
+    """
+    Obtiene una película por ID y carga eagerly el género asociado.
+    """
+    return db.query(PeliculaORM).options(
+        joinedload(PeliculaORM.genero)
+    ).filter(PeliculaORM.id == pelicula_id).first()

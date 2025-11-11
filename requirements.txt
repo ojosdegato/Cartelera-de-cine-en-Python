@@ -9,3 +9,6 @@ uvicorn==0.38.0
 
 # El ORM (Object Relational Mapper) para la base de datos
 sqlalchemy==2.0.44
+
+# Jinja2 parte web
+jinja2==3.1.3
