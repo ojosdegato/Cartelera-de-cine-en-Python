@@ -83,3 +83,37 @@ def get_pelicula_detalle(db: Session, pelicula_id: int) -> Optional[PeliculaORM]
     return db.query(PeliculaORM).options(
         joinedload(PeliculaORM.genero)
     ).filter(PeliculaORM.id == pelicula_id).first()
+
+
+# Nueva función para aplicar los filtros dinámicos
+def get_peliculas_filtradas(
+    db: Session,
+    genero_id: Optional[int] = None,
+    duracion_max: Optional[int] = None,
+    disponible: Optional[bool] = None # USAMOS BOOL
+) -> List[PeliculaORM]:
+    """
+    Obtiene películas aplicando filtros dinámicos (género, duración, disponibilidad).
+    """
+    # 1. Iniciar la consulta base con eager loading para el género
+    query = db.query(PeliculaORM).options(
+        joinedload(PeliculaORM.genero)
+    )
+
+    # 2. Construir la lista de condiciones (filtros)
+    filtros = []
+    
+    if genero_id is not None:
+        filtros.append(PeliculaORM.genero_id == genero_id)
+        
+    if duracion_max is not None and duracion_max > 0:
+        filtros.append(PeliculaORM.duracion <= duracion_max)
+        
+    # Aplicar filtro de Clasificación (Disponibilidad)
+    # Si el valor es True, filtramos por disponible=True
+    if disponible: 
+        filtros.append(PeliculaORM.disponible == True)
+
+    # 3. Aplicar todos los filtros y ejecutar la consulta
+    # Aseguramos el orden alfabético para una mejor UX
+    return query.filter(*filtros).order_by(PeliculaORM.titulo).all()
