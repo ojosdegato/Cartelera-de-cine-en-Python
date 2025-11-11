@@ -1,0 +1,11 @@
+# app/requirements.txt
+
+# El framework principal para la API
+# Incluye Pydantic para los schemas (BaseModel)
+fastapi==0.120.0
+
+# El servidor ASGI necesario para ejecutar FastAPI en producción/desarrollo
+uvicorn==0.38.0
+
+# El ORM (Object Relational Mapper) para la base de datos
+sqlalchemy==2.0.44
