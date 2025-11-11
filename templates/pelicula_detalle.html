@@ -14,16 +14,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
         xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL3gUq73K2qI90U8v8lC6W9lJvGvE8j+N5i3F3aH8O/2p1x9h6O2A1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- CSS Personalizado (Azul/Blanco) -->
+    <!-- CSS Personalizado (Azul/Blanco optimizado) -->
     <style>
-        body { background-color: #f8f9fa; }
+        body { background-color: #f8f9fa; font-family: 'Inter', sans-serif; }
         .navbar { background-color: #003366 !important; }
-        .card { border-radius: 10px; box-shadow: 0 4px 10px rgba(0, 51, 102, 0.1); }
+        .card { border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 51, 102, 0.1); }
         .text-primary-accent { color: #0d6efd !important; }
-        .detail-label { font-weight: 600; color: #555; }
+        .detail-label { font-weight: 600; color: #333; margin-right: 0.5rem; }
+        .data-value { color: #003366; font-weight: 500; }
         .trailer-btn { background-color: #ff3333; border-color: #ff3333; }
         .trailer-btn:hover { background-color: #cc0000; border-color: #cc0000; }
         .actor-badge { margin: 2px; }
+        .modal-header.bg-danger { background-color: #dc3545 !important; border-top-left-radius: 11px; border-top-right-radius: 11px; }
+        .text-danger-strong { color: #dc3545 !important; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -41,30 +44,56 @@
         
         <!-- TÍTULO PRINCIPAL -->
         <h1 class="text-center mb-5 text-primary-accent">
-            <i class="fas fa-film me-2"></i> {{ pelicula.titulo }}
+            <i class="fas fa-film me-2"></i> Ficha Técnica: {{ pelicula.titulo }}
         </h1>
 
         <div class="row justify-content-center">
             <div class="col-lg-10 col-xl-8">
                 <div class="card p-4 p-md-5">
                     
-                    <h4 class="border-bottom pb-3 mb-4 text-primary-accent">Ficha Técnica</h4>
+                    <h4 class="border-bottom pb-3 mb-4 text-primary-accent"><i class="fas fa-info-circle me-2"></i> Detalles de la Película</h4>
                     
                     <div class="row g-4">
                         
                         <!-- Columna de Metadatos Clave -->
                         <div class="col-md-6">
-                            <p class="mb-2"><span class="detail-label">ID Película:</span> <span class="badge bg-secondary">{{ pelicula.id }}</span></p>
+                            <p class="mb-3">
+                                <span class="detail-label">ID Película:</span> 
+                                <span class="badge bg-secondary data-value">{{ pelicula.id }}</span>
+                            </p>
                             
-                            <p class="mb-2"><span class="detail-label">Director:</span> {{ pelicula.director if pelicula.director else 'Desconocido' }}</p>
+                            <p class="mb-3">
+                                <span class="detail-label">Género:</span> 
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-bookmark me-1"></i> {{ pelicula.genero.nombre if pelicula.genero else 'Sin Género' }}
+                                </span>
+                            </p>
 
-                            <p class="mb-2"><span class="detail-label">Productora:</span> {{ pelicula.productora if pelicula.productora else 'N/A' }}</p>
+                            <p class="mb-3">
+                                <span class="detail-label">Duración:</span> 
+                                <span class="data-value fw-bold">{{ pelicula.duracion }}</span> minutos
+                            </p>
+                            
+                            <p class="mb-3">
+                                <span class="detail-label">Director:</span> 
+                                <span class="data-value">{{ pelicula.director if pelicula.director else 'Desconocido' }}</span>
+                            </p>
 
-                            <p class="mb-2"><span class="detail-label">Idioma:</span> {{ pelicula.idioma if pelicula.idioma else 'N/A' }} 
+                            <p class="mb-3">
+                                <span class="detail-label">Productora:</span> 
+                                <span class="data-value">{{ pelicula.productora if pelicula.productora else 'N/A' }}</span>
+                            </p>
+                        </div>
+                        
+                        <!-- Columna de Idioma y Estado -->
+                        <div class="col-md-6">
+                            <p class="mb-3">
+                                <span class="detail-label">Idioma:</span> 
+                                <span class="data-value">{{ pelicula.idioma if pelicula.idioma else 'N/A' }}</span>
                                 {% if pelicula.vose %}<span class="badge bg-primary ms-1">VOSE</span>{% endif %}
                             </p>
                             
-                            <p class="mb-2">
+                            <p class="mb-3">
                                 <span class="detail-label">Estado:</span> 
                                 {% if pelicula.disponible %}
                                     <span class="badge bg-success"><i class="fas fa-check-circle"></i> En Cartelera</span>
@@ -72,39 +101,24 @@
                                     <span class="badge bg-danger"><i class="fas fa-times-circle"></i> Retirada</span>
                                 {% endif %}
                             </p>
-                        </div>
-                        
-                        <!-- Columna de Género y Duración -->
-                        <div class="col-md-6">
-                            <p class="mb-2">
-                                <span class="detail-label">Género:</span> 
-                                <span class="badge bg-primary">
-                                    <i class="fas fa-bookmark me-1"></i> {{ pelicula.genero.nombre if pelicula.genero else 'Sin Género' }}
-                                </span>
-                            </p>
-
-                            <p class="mb-2">
-                                <span class="detail-label">Duración:</span> 
-                                <span class="text-primary-accent fw-bold">{{ pelicula.duracion }}</span> minutos
-                            </p>
 
                             <!-- Botón Trailer -->
                             {% if pelicula.trailer %}
-                            <a href="{{ pelicula.trailer }}" target="_blank" class="btn btn-danger trailer-btn mt-3 shadow-sm">
-                                <i class="fab fa-youtube me-2"></i> Ver Trailer
+                            <a href="{{ pelicula.trailer }}" target="_blank" class="btn btn-danger trailer-btn mt-3 shadow-sm w-100">
+                                <i class="fab fa-youtube me-2"></i> Ver Trailer Oficial
                             </a>
                             {% endif %}
                         </div>
 
                         <!-- Descripción -->
                         <div class="col-12 border-top pt-4">
-                            <p class="detail-label mb-2">Sinopsis:</p>
+                            <p class="detail-label mb-2"><i class="fas fa-book-open me-1"></i> Sinopsis:</p>
                             <p>{{ pelicula.descripcion if pelicula.descripcion else 'Descripción no proporcionada.' }}</p>
                         </div>
                         
                         <!-- Reparto -->
                         <div class="col-12 border-top pt-4">
-                            <p class="detail-label mb-2">Reparto (Actores):</p>
+                            <p class="detail-label mb-2"><i class="fas fa-users me-1"></i> Reparto (Actores):</p>
                             {% if pelicula.actores and pelicula.actores|length > 0 %}
                                 {% for actor in pelicula.actores %}
                                     <span class="badge bg-info text-dark actor-badge">{{ actor }}</span>
@@ -121,11 +135,13 @@
                                 <a href="/peliculas/editar/{{ pelicula.id }}" class="btn btn-warning shadow-sm">
                                     <i class="fas fa-edit me-1"></i> Editar Película
                                 </a>
-                                <form action="/peliculas/eliminar/{{ pelicula.id }}" method="post" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar la película ID {{ pelicula.id }}? Esta acción es irreversible.');">
-                                    <button type="submit" class="btn btn-danger shadow-sm">
-                                        <i class="fas fa-trash me-1"></i> Eliminar
-                                    </button>
-                                </form>
+                                
+                                <!-- BOTÓN QUE ACTIVA EL MODAL (Eliminación Segura) -->
+                                <button type="button" class="btn btn-danger shadow-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">
+                                    <i class="fas fa-trash me-1"></i> Eliminar
+                                </button>
+                                <!-- FIN DEL BOTÓN MODAL -->
+
                             </div>
                         </div>
 
@@ -135,13 +151,53 @@
         </div>
 
     </main>
+    
+    <!-- ==================================================================== -->
+    <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN -->
+    <!-- Este modal proporciona la ventana de advertencia que usted solicitó -->
+    <!-- ==================================================================== -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Header del Modal con estética de Advertencia -->
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel"><i class="fas fa-exclamation-triangle me-2"></i> Confirmación de Borrado Crítico</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <!-- Cuerpo del Modal -->
+                <div class="modal-body">
+                    <p class="lead text-danger-strong">¿Estás absolutamente seguro de que deseas eliminar la película?</p>
+                    <p>
+                        <strong>Título:</strong> 
+                        <span class="text-secondary fw-bold">{{ pelicula.titulo }}</span>
+                        <span class="badge bg-secondary ms-2">{{ pelicula.id }}</span>
+                    </p>
+                    <p class="text-muted small">Esta acción es **irreversible** y eliminará la película de la base de datos.</p>
+                </div>
+                <!-- Footer del Modal con Opciones de Confirmación/Cancelación -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-undo me-1"></i> No Eliminar (Cancelar)
+                    </button>
+                    <!-- Formulario de ELIMINACIÓN REAL (POST) -->
+                    <!-- Al enviar este formulario, se llama al endpoint POST /peliculas/eliminar/{id} -->
+                    <form action="/peliculas/eliminar/{{ pelicula.id }}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-1"></i> Sí, Eliminar Permanentemente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ==================================================================== -->
 
     <!-- FOOTER -->
     <footer class="bg-dark text-white-50 py-3 mt-5">
         <div class="container text-center"><small>Proyecto Cartelera de Cine &copy; 2025.</small></div>
     </footer>
 
-    <!-- Carga de Bootstrap JS -->
+    <!-- Carga de Bootstrap JS (Obligatorio para que funcione el Modal) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
         xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
