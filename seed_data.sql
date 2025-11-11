@@ -75,12 +75,15 @@ INSERT INTO peliculas (titulo, duracion, disponible, genero_id, director, descri
 
 -- HISTORICAS (ID 10)
 ('Los Foros de la Red', 115, 1, 10, 'Manuel J.', 'Un recuento de las primeras comunidades de software libre en internet.', '["Javier C.", "Kary H."]', 'https://www.google.com/search?q=http://trailer.historica.com', 'Software Libre Films', 'Castellano', 0),
+('El Inicio del Kernel', 150, 1, 10, 'Iñaki H.', 'Un drama histórico sobre la creación del primer núcleo monolítico.', '["Javier C.", "Reyes D."]', 'https://www.google.com/search?q=http://trailer.kernel.com', 'HueteDevs', 'Inglés', 1),
 
 -- CLASICO (ID 11)
 ('El Proyecto Pascal (1985)', 140, 1, 11, 'Reyes D.', 'Un clásico de culto sobre los inicios de la programación estructurada.', '["Iñaki H.", "Reyes D."]', 'https://www.google.com/search?q=http://trailer.clasico.com', 'AsturTech', 'Inglés', 0),
+('El Primer Byte', 95, 1, 11, 'Manuel J.', 'La historia de la primera máquina de Turing y su impacto.', '["Kary H.", "Manuel J."]', 'https://www.google.com/search?q=http://trailer.byte.com', 'Adecco Cinema', 'Castellano', 0),
 
 -- ANIMACIÓN (ID 12)
 ('Aventuras en el Heap', 75, 1, 12, 'Manuel J. Marín', 'Una colorida exploración animada sobre la gestión de memoria.', '["Pepe Coder"]', 'http://trailer.heap.com', 'Animaciones Dev', 'Castellano', 0),
 ('La Leyenda del Binario', 78, 1, 12, 'Kary H.', 'Una aventura animada para niños sobre los secretos de los 0s y 1s.', '["Pepe Coder"]', 'http://trailer.binario.com', 'Animaciones Dev', 'Inglés', 1);
+
 -- Volver a habilitar las claves foráneas
 PRAGMA foreign_keys = ON;
