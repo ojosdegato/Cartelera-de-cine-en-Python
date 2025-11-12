@@ -101,3 +101,7 @@ INSERT INTO peliculas (titulo, duracion, disponible, genero_id, director, descri
 
 -- Volver a habilitar las claves foráneas
 PRAGMA foreign_keys = ON;
+
+-----------------------------------------------------------------------
+-- 2. FIN INSERCIÓN DE 40 PELÍCULAS (Distribuidas entre los 13 Géneros)
+-----------------------------------------------------------------------

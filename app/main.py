@@ -1,4 +1,5 @@
-# app/main.py
+
+  # app/main.py
 # Punto de entrada principal de la aplicación FastAPI.
 # Contiene solo la orquestación, mounts, manejadores de error y el endpoint raíz.
 
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException # Para atrapar errores de ruteo
 
-# --- Importaciones de Infraestructura y Utilidades ---
+# --- Importaciones de Infraestructura y Utilidades (TODO MOVILIZADO) ---
 # Importamos la configuración y las rutas
 from app.config import templates, APP_METADATA, DB_FILE_PATH, SCHEMA_FILE_PATH, SEED_FILE_PATH, STATIC_DIR 
 # Importamos el mecanismo de carga de SQL (de app/utils.py)
@@ -26,17 +27,14 @@ from app.services import pelicula_service, genero_service
 
 
 # -------------------------------------------------------------
-# --- 1. INSTANCIA DE APLICACIÓN Y METADATOS ---
+# --- 1. INSTANCIA DE APLICACIÓN Y MANEJO DE ERRORES ---
 # -------------------------------------------------------------
 
-# Usamos APP_METADATA importada directamente
+# A. INSTANCIA DE APLICACIÓN (Usando APP_METADATA de app/config.py)
 app = FastAPI(**APP_METADATA)
 
 
-# -------------------------------------------------------------
-# --- 2. MANEJO DE ERRORES GLOBAL (404 Not Found) ---
-# -------------------------------------------------------------
-
+# B. MANEJO DE ERRORES GLOBAL (404 Not Found)
 @app.exception_handler(StarletteHTTPException)
 async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
     """
@@ -50,12 +48,11 @@ async def custom_http_exception_handler(request: Request, exc: StarletteHTTPExce
             # Fallback en caso de que la plantilla 404.html no se pueda cargar
             return HTMLResponse("<h1>404 Not Found</h1><p>Error en el servidor de la aplicación.</p>", status_code=404)
     
-    # Para otros errores (400, 500), usamos el manejo por defecto de FastAPI
     return await request.app.default_exception_handlers[exc.__class__](request, exc)
 
 
 # -------------------------------------------------------------
-# --- 3. MONTAJE DE ARCHIVOS ESTÁTICOS Y ORQUESTACIÓN ---
+# --- 2. MONTAJE DE ARCHIVOS ESTÁTICOS Y ORQUESTACIÓN ---
 # -------------------------------------------------------------
 
 # A. MONTAJE DE ARCHIVOS ESTÁTICOS (Usando STATIC_DIR de config)
@@ -68,7 +65,7 @@ except RuntimeError:
 
 
 # B. ORQUESTACIÓN DE ARRANQUE (Inicialización de DB)
-# Usamos DB_FILE_PATH, SCHEMA_FILE_PATH y SEED_FILE_PATH de config
+# Usamos las rutas de config y la utilidad de utils
 if not os.path.exists(DB_FILE_PATH):
     print("🚨 DB no encontrada. Creando y cargando esquema/datos iniciales.")
     db = SessionLocal()
@@ -82,17 +79,17 @@ if not os.path.exists(DB_FILE_PATH):
 
 
 # -------------------------------------------------------------
-# --- 4. INCLUSIÓN DE ROUTERS ---
+# --- 3. INCLUSIÓN DE ROUTERS Y ENDPOINT RAÍZ ---
 # -------------------------------------------------------------
 
 app.include_router(pelicula_router.router)
 app.include_router(genero_router.router)
+#app.include_router(sala_router.router)
+#app.include_router(horario_router.router)
+#app.include_router(venta_router.router)
+#app.include_router(socio_router.router)
 # TODO: Incluir app.include_router(sala_router.router) y otros aquí
 
-
-# -------------------------------------------------------------
-# --- 5. ENDPOINT DE LA PÁGINA WEB (RUTA /) CON FILTROS ---
-# -------------------------------------------------------------
 
 @app.get("/", tags=["Web UI"])
 def homepage_cartelera(
@@ -107,7 +104,7 @@ def homepage_cartelera(
     [GET] Ruta principal que muestra la cartelera, aplicando filtros dinámicos.
     """
     
-    # 1. LIMPIEZA DE PARÁMETROS (Convierte "" a None y luego a INT/BOOL)
+    # 1. LIMPIEZA DE PARÁMETROS (La lógica se mantiene en el router para el manejo de Query params)
     clean_genero_id = int(genero_id) if genero_id and genero_id.isdigit() else None
     clean_duracion_max = int(duracion_max) if duracion_max and duracion_max.isdigit() else None
     filtro_disponible_bool = disponible == "True"
@@ -132,7 +129,7 @@ def homepage_cartelera(
         'disponible': filtro_disponible_bool
     }
     
-    # 4. Renderizar la plantilla con los datos
+    # 4. Renderizar la plantilla
     return templates.TemplateResponse(
         "index.html",
         {
@@ -142,4 +139,4 @@ def homepage_cartelera(
             "generos": generos_disponibles, 
             "filtros_activos": filtros_activos 
         }
-    )
+    )  
