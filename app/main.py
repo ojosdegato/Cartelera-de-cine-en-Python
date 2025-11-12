@@ -9,6 +9,12 @@ from fastapi.staticfiles import StaticFiles # Necesario para archivos estáticos
 from sqlalchemy import text 
 from sqlalchemy.orm import Session 
 
+from starlette.responses import HTMLResponse
+from fastapi.exceptions import HTTPException
+from fastapi.routing import APIRoute
+from starlette.exceptions import HTTPException as StarletteHTTPException # Necesario para atrapar errores de ruteo
+
+
 # --- Importaciones de Infraestructura y Configuración ---
 from app.db import Base, engine, SessionLocal, get_db
 from app.config import templates # Motor Jinja2
@@ -61,6 +67,27 @@ app = FastAPI(
     description="Proyecto desarrollado en Python + IA (FastAPI y SQLAlchemy)",
     version="1.0.0"
 )
+
+# --- MANEJO DE ERRORES GLOBAL (404 Not Found) ---
+
+# Este manejador global captura errores de ruteo (404) y errores lanzados por el servidor.
+@app.exception_handler(StarletteHTTPException)
+async def custom_http_exception_handler(request, exc):
+    """
+    Maneja el error 404 (Not Found) y otros errores HTTP para servir nuestra plantilla HTML personalizada.
+    """
+    if exc.status_code == 404:
+        # 1. Intentamos obtener la plantilla 404.html
+        try:
+            return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+        except:
+            # 2. Si la plantilla falla, devolvemos una respuesta HTML simple
+            return HTMLResponse("<h1>404 Not Found</h1><p>Error en el servidor de la aplicación.</p>", status_code=404)
+    
+    # Para otros errores (400, 500), usamos el manejo por defecto de FastAPI
+    return await request.app.default_exception_handlers[exc.__class__](request, exc)
+
+# Nota: El uso de 'request.app.default_exception_handlers' requiere que se use StarletteHTTPException.
 
 # --- 2. MONTAJE DE ARCHIVOS ESTÁTICOS ---
 # Necesario para el favicon.ico y futuros archivos CSS/JS
