@@ -1,1 +1,0 @@
-# TODO: Implementar el modelo HorarioORM (Manuel)

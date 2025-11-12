@@ -1,1 +1,0 @@
-# TODO: Implementar los schemas de Venta (Iñaki)
