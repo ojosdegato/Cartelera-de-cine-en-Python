@@ -1,28 +1,27 @@
 # app/main.py
 # Punto de entrada principal de la aplicación FastAPI y Orquestación de la DB
-# Lógica de Filtrado robusta para evitar errores 422.
+# Incluye la lógica de montaje de archivos estáticos y la gestión de filtros robusta.
 
 import os
+from typing import Optional 
 from fastapi import FastAPI, Depends, Query, Request 
+from fastapi.staticfiles import StaticFiles # Necesario para archivos estáticos como favicon
 from sqlalchemy import text 
 from sqlalchemy.orm import Session 
-from typing import Optional
 
-# --- Importaciones de Infraestructura ---
+# --- Importaciones de Infraestructura y Configuración ---
 from app.db import Base, engine, SessionLocal, get_db
 from app.config import templates # Motor Jinja2
 
-# --- Importaciones de Modelos y Módulos ---
+# --- Importaciones de Modelos, Routers y Services ---
 from app.models import pelicula, genero # Necesario para DDL
-from app.models.pelicula import PeliculaORM # Necesario para servicios
-from app.models.genero import GeneroORM # Necesario para servicios
+from app.models.pelicula import PeliculaORM
+from app.models.genero import GeneroORM
 from app.routers import pelicula_router, genero_router 
-# TODO: Importar los routers de sala, horario y venta aquí
-
 from app.services import pelicula_service, genero_service
 
 
-# --- RUTAS DE LOS ARCHIVOS ---
+# --- CONFIGURACIÓN Y RUTAS DE INFRAESTRUCTURA ---
 DB_FILE_PATH = "./cartelera_cine.db"
 SCHEMA_FILE_PATH = "cartelera_schema.sql"
 SEED_FILE_PATH = "seed_data.sql"
@@ -56,7 +55,24 @@ def execute_sql_file(db_session, file_path):
         return False
 
 
-# --- ORQUESTACIÓN DE ARRANQUE (Inicialización de DB) ---
+# --- 1. INSTANCIA DE APLICACIÓN (Definición obligatoria al inicio) ---
+app = FastAPI(
+    title="API Cartelera de Cine",
+    description="Proyecto desarrollado en Python + IA (FastAPI y SQLAlchemy)",
+    version="1.0.0"
+)
+
+# --- 2. MONTAJE DE ARCHIVOS ESTÁTICOS ---
+# Necesario para el favicon.ico y futuros archivos CSS/JS
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except RuntimeError:
+    print("⚠️ Advertencia: Creando directorio 'static/' para montaje.")
+    os.makedirs("static", exist_ok=True)
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# --- 3. ORQUESTACIÓN DE ARRANQUE (Inicialización de DB) ---
 if not os.path.exists(DB_FILE_PATH):
     print("🚨 DB no encontrada. Creando y cargando esquema/datos iniciales.")
     db = SessionLocal()
@@ -68,60 +84,60 @@ if not os.path.exists(DB_FILE_PATH):
     print("✨ Base de datos inicializada correctamente.")
 
 
-# --- INSTANCIA DE APLICACIÓN ---
-app = FastAPI(
-    title="API Cartelera de Cine",
-    description="Proyecto desarrollado en Python + IA (FastAPI y SQLAlchemy)",
-    version="1.0.0"
-)
+# --- 4. INCLUSIÓN DE ROUTERS ---
+
+app.include_router(pelicula_router.router)
+app.include_router(genero_router.router)
+# TODO: Incluir app.include_router(sala_router.router) y otros aquí
 
 
-# --- ENDPOINT DE LA PÁGINA WEB (RUTA /) CON FILTROS ---
+# --- 5. ENDPOINT DE LA PÁGINA WEB (RUTA /) CON FILTROS ---
 
 @app.get("/", tags=["Web UI"])
 def homepage_cartelera(
     request: Request,
     db: Session = Depends(get_db),
-    # Recibimos todos los parámetros como string opcional, que puede ser "" o None
+    # Recibimos el parámetro de búsqueda libre
+    q: Optional[str] = Query(None), 
+    # Recibimos parámetros de filtro como string opcional (para manejar "")
     genero_id: Optional[str] = Query(None),
     duracion_max: Optional[str] = Query(None),
-    disponible: Optional[str] = Query(None) # Recibe "True" o None
+    disponible: Optional[str] = Query(None)
 ):
     """
     [GET] Ruta principal que muestra la cartelera, aplicando filtros dinámicos.
     """
     
-    # 1. LIMPIEZA DE PARÁMETROS (Convierte "" a None y luego a INT)
+    # 1. LIMPIEZA DE PARÁMETROS (Convierte "" a None y luego a INT/BOOL)
     
-    # Si genero_id es "" o None, es None. Si es dígito, se convierte a INT.
+    # Lógica de limpieza para evitar 422: si no es None Y es un dígito, conviertelo.
     clean_genero_id = int(genero_id) if genero_id and genero_id.isdigit() else None
-    
-    # Si duracion_max es "" o None, es None. Si es dígito, se convierte a INT.
     clean_duracion_max = int(duracion_max) if duracion_max and duracion_max.isdigit() else None
     
-    # Checkbox: Solo es True si la URL contiene ?disponible=True
+    # Checkbox de disponibilidad
     filtro_disponible_bool = disponible == "True"
 
     
     # 2. Obtener la lista de películas filtradas usando el servicio
     peliculas = pelicula_service.get_peliculas_filtradas(
         db=db,
+        query=q, # <-- PASAMOS EL NUEVO TÉRMINO DE BÚSQUEDA
         genero_id=clean_genero_id,
         duracion_max=clean_duracion_max,
         disponible=filtro_disponible_bool
     )
 
-    # 3. Obtener lista de géneros para rellenar el selector del filtro
+    # 3. Obtener lista de géneros y crear el diccionario de filtros activos
     generos_disponibles = genero_service.get_all_generos(db)
 
-    # 4. Crear un diccionario para mantener el estado de los filtros activos
     filtros_activos = {
+        'q': q,
         'genero_id': clean_genero_id,
         'duracion_max': clean_duracion_max,
         'disponible': filtro_disponible_bool
     }
     
-    # 5. Renderizar la plantilla con los datos
+    # 4. Renderizar la plantilla con los datos
     return templates.TemplateResponse(
         "index.html",
         {
@@ -132,12 +148,3 @@ def homepage_cartelera(
             "filtros_activos": filtros_activos 
         }
     )
-
-# --- INCLUSIÓN DE ROUTERS ---
-
-app.include_router(pelicula_router.router)
-app.include_router(genero_router.router)
-# app.include_router(sala_router.router)
-# app.include_router(horario_router.router)
-    
-    
