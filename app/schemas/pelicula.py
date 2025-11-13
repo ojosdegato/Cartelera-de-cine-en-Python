@@ -4,6 +4,7 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 
+
 # --- Esquema Base ---
 # Campos comunes que se comparten al crear y leer.
 # Corresponde 1 a 1 con how_to_do.md
@@ -59,8 +60,8 @@ class PeliculaRead(PeliculaBase):
 #     genero: GeneroRead
 
 # Importar GeneroRead para el anidamiento
-from .genero import GeneroRead 
-
+from .genero import GeneroRead
+ 
 class PeliculaReadWithGenero(PeliculaRead):
     # Sobreescribe el campo de la base para incluir el objeto ORM cargado
     genero: GeneroRead

@@ -61,7 +61,7 @@ def create_pelicula_from_form(
     productora: Optional[str] = Form(None),
     idioma: Optional[str] = Form(None),
     vose: bool = Form(False),
-    actores: str = Form("[]")
+    actores: Optional[str] = Form(None) # ⚠️ CORRECCIÓN 1: Acepta None y usa Optional[str]
 ):
     """
     [POST] Procesa los datos del formulario, valida, crea la nueva película y redirige.
@@ -70,7 +70,11 @@ def create_pelicula_from_form(
         if not genero_service.get_genero_by_id(db, genero_id):
             raise HTTPException(status_code=400, detail="Género ID no válido.")
 
-        actores_list = [a.strip() for a in actores.split(',') if a.strip()] 
+        # ⚠️ CORRECCIÓN 2: Lógica defensiva para actores
+        if actores:
+            actores_list = [a.strip() for a in actores.split(',') if a.strip()] 
+        else:
+            actores_list = []
 
         pelicula_data = PeliculaCreate(
             titulo=titulo, duracion=duracion, genero_id=genero_id, disponible=disponible, 
@@ -96,7 +100,6 @@ def read_pelicula_by_id_api(pelicula_id: int, db: Session = Depends(get_db)):
     if pelicula is None:
         raise HTTPException(status_code=404, detail="Película no encontrada")
     return pelicula
-
 
 
 # === RUTA: VER DETALLE (READ) ===
@@ -158,7 +161,7 @@ def update_pelicula_from_form(
     disponible: bool = Form(False), director: Optional[str] = Form(None),
     descripcion: Optional[str] = Form(None), trailer: Optional[str] = Form(None),
     productora: Optional[str] = Form(None), idioma: Optional[str] = Form(None),
-    vose: bool = Form(False), actores: str = Form("[]")
+    vose: bool = Form(False), actores: Optional[str] = Form(None) # ⚠️ CORRECCIÓN 3: Acepta None y usa Optional[str]
 ):
     """
     [POST] Procesa la actualización de los datos de una película existente.
@@ -167,7 +170,11 @@ def update_pelicula_from_form(
         if not genero_service.get_genero_by_id(db, genero_id):
             raise HTTPException(status_code=400, detail="Género ID no válido.")
 
-        actores_list = [a.strip() for a in actores.split(',') if a.strip()]
+        # ⚠️ CORRECCIÓN 4: Lógica defensiva para actores
+        if actores:
+            actores_list = [a.strip() for a in actores.split(',') if a.strip()]
+        else:
+            actores_list = []
         
         pelicula_update = PeliculaUpdate(
             titulo=titulo, duracion=duracion, genero_id=genero_id, disponible=disponible, 
