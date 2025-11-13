@@ -10,7 +10,7 @@ from typing import List, Optional
 # --- Importaciones Específicas del Proyecto (Rompiendo la Circularidad) ---
 from app.db import get_db
 from app.config import templates # Motor Jinja2, importado de un archivo de configuración
-from app.schemas.pelicula import PeliculaRead, PeliculaCreate, PeliculaUpdate
+from app.schemas.pelicula import PeliculaRead, PeliculaCreate, PeliculaReadWithGenero, PeliculaUpdate
 from app.services import pelicula_service, genero_service 
 from app.models.pelicula import PeliculaORM # Necesario para la firma de tipos en el servicio
 
@@ -86,6 +86,17 @@ def create_pelicula_from_form(
     except Exception as e:
         print(f"Error al crear película desde formulario: {e}")
         raise HTTPException(status_code=500, detail="Error interno al procesar la creación.")
+
+# Usar el nuevo Esquema en la API:
+# Antes: @router.get("/{pelicula_id}", response_model=PeliculaRead)
+@router.get("/{pelicula_id}/api", response_model=PeliculaReadWithGenero) 
+def read_pelicula_by_id_api(pelicula_id: int, db: Session = Depends(get_db)):
+    # Usamos el servicio que ya hace eager loading:
+    pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id) 
+    if pelicula is None:
+        raise HTTPException(status_code=404, detail="Película no encontrada")
+    return pelicula
+
 
 
 # === RUTA: VER DETALLE (READ) ===

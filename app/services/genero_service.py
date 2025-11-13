@@ -71,3 +71,19 @@ def get_genero_with_peliculas(db: Session, genero_id: int) -> Optional[GeneroORM
     return db.query(GeneroORM).options(
         joinedload(GeneroORM.peliculas) # Carga proactiva
     ).filter(GeneroORM.id == genero_id).first()
+    
+# app/services/genero_service.py
+from sqlalchemy import select
+
+def delete_genero(db: Session, genero_id: int) -> bool:
+    db_genero = get_genero_by_id(db, genero_id)
+    if db_genero:
+        # ⚠️ Verificación para PROHIBIR el borrado si hay películas (si la cascada no existiera)
+        if db_genero.peliculas: # El atributo 'peliculas' se carga con el ORM
+            print(f"ERROR: No se puede eliminar el género {genero_id} porque tiene películas asociadas.")
+            return False
+
+        db.delete(db_genero)
+        db.commit()
+        return True
+    return False

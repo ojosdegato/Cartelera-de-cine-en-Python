@@ -18,17 +18,16 @@ INSERT INTO generos (id, nombre, descripcion) VALUES
 (7, 'Romance', 'Historias de amor y conexiones humanas, a menudo mediadas por la tecnología.'),
 (8, 'Documental', 'Análisis riguroso de la historia de la informática, el software libre o los grandes proyectos.'),
 (9, 'Terror', 'Pesadillas sobre fallos de producción, punteros nulos o la llegada del jefe.'),
-(10, 'Historicas', 'Peliculas historias y antiguas que mercarón una epoca.'),
+(10, 'Historica', 'Peliculas historias y antiguas que mercarón una epoca.'),
 (11, 'Clasico', 'Peliculas que marcarón una epoca en su epoca y hoy son una reliquia.'),
-(12, 'Historica', 'Peliculas que marcarón una epoca en la historia del ser humano.'),
-(13, 'Animación', 'Películas diseñadas para toda la familia, explicando conceptos de programación.');
+(12, 'Animación', 'Películas diseñadas para toda la familia, explicando conceptos de programación.');
 
--- Actualizar la secuencia de IDs para que la próxima inserción use el ID 14
+-- Actualizar la secuencia de IDs para que la próxima inserción use el ID 13
 --# UPDATE sqlite_sequence SET seq = 12 WHERE name = 'generos';
 
 
 -----------------------------------------------------------------------
--- 2. INSERCIÓN DE 40 PELÍCULAS (Distribuidas entre los 13 Géneros)
+-- 2. INSERCIÓN DE 40 PELÍCULAS (Distribuidas entre los 12 Géneros)
 -----------------------------------------------------------------------
 
 INSERT INTO peliculas (titulo, duracion, disponible, genero_id, director, descripcion, actores, trailer, productora, idioma, vose) VALUES

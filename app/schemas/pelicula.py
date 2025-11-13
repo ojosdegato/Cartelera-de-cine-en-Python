@@ -57,3 +57,10 @@ class PeliculaRead(PeliculaBase):
 #
 # class PeliculaReadWithGenero(PeliculaRead):
 #     genero: GeneroRead
+
+# Importar GeneroRead para el anidamiento
+from .genero import GeneroRead 
+
+class PeliculaReadWithGenero(PeliculaRead):
+    # Sobreescribe el campo de la base para incluir el objeto ORM cargado
+    genero: GeneroRead
