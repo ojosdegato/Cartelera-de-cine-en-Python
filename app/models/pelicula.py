@@ -46,5 +46,7 @@ class PeliculaORM(Base):
     
     # (Aquí irían otras relaciones, ej: con Horario)
     
+    
+    
     def __repr__(self):
         return f"<Pelicula(id={self.id}, titulo='{self.titulo}')>"
