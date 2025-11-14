@@ -39,17 +39,32 @@ app = FastAPI(**APP_METADATA)
 @app.exception_handler(StarletteHTTPException)
 async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
     """
-    Maneja el error 404 (Not Found) y otros errores HTTP para servir nuestra plantilla HTML personalizada.
+    Maneja el error 404 (Not Found) y otros errores HTTP para servir nuestra
+    plantilla HTML personalizada, y el resto de errores HTTP con una respuesta simple.
     """
+    # Caso específico: 404 Not Found
     if exc.status_code == 404:
         try:
             # Usamos el objeto 'templates' importado de config
-            return templates.TemplateResponse("404.html", {"request": request}, status_code=404)
+            # Buscará templates/404.html
+            return templates.TemplateResponse(
+                "404.html",
+                {"request": request},
+                status_code=404,
+            )
         except Exception:
             # Fallback en caso de que la plantilla 404.html no se pueda cargar
-            return HTMLResponse("<h1>404 Not Found</h1><p>Error en el servidor de la aplicación.</p>", status_code=404)
-    
-    return await request.app.default_exception_handlers[exc.__class__](request, exc)
+            return HTMLResponse(
+                "<h1>404 Not Found</h1><p>Error en el servidor de la aplicación.</p>",
+                status_code=404,
+            )
+
+    # Resto de códigos HTTP (403, 500, etc.): respuesta HTML simple
+    return HTMLResponse(
+        f"<h1>Error {exc.status_code}</h1><p>{exc.detail}</p>",
+        status_code=exc.status_code,
+    )
+
 
 
 # -------------------------------------------------------------
@@ -117,12 +132,17 @@ def homepage_cartelera(
     
     # 4. Renderizar la plantilla
     return templates.TemplateResponse(
-        "index.html",
+        "peliculas/index.html",
+        
         {
             "request": request,
             "titulo": "Gestión de Cartelera - CRUD",
             "peliculas": peliculas,
-            "generos": generos_disponibles, 
-            "filtros_activos": filtros_activos 
-        }
-    )  
+            "generos": generos_disponibles,
+            "filtros_activos": filtros_activos,
+        },
+    )
+    
+    
+    
+    

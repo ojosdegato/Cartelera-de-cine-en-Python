@@ -35,6 +35,7 @@ STATIC_DIR = "static" # Directorio para archivos estáticos
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "..", "templates"))
 
 
+
 # 3. METADATOS DE LA APLICACIÓN (Movidos desde la instancia FastAPI en main.py)
 APP_METADATA = {
     "title": "API Cartelera de Cine - javiercachon.com",
