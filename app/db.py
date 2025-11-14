@@ -1,92 +1,78 @@
 # app/db.py
-# Configuración central de la base de datos (SQLAlchemy)
+from pathlib import Path
+import sqlite3
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy.orm import Session
-import os
-import sys
+from sqlalchemy.orm import sessionmaker, declarative_base
 
-# --- CONFIGURACIÓN DE RUTAS ---
-# Usamos la URL de la BBDD del plan
-DATABAS_URL = "sqlite:///./cartelera_cine.db"
-# Usamos una ruta relativa al DDL para el chequeo de la base de datos
-SCHEMA_FILE_PATH = "cartelera_schema.sql" 
+# Directorio base del paquete app ( .../Cartelera-de-cine-en-Python/app )
+BASE_DIR = Path(__file__).resolve().parent
+
+# Rutas reales
+DB_PATH = BASE_DIR / "database" / "cartelera_cine.db"
+SQL_PATH = BASE_DIR / "database" / "db.sql"
+
+# URL que usará SQLAlchemy (alineada con DB_PATH)
+DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 
-# 1. CLASE BASE Y MOTOR
-engine = create_engine(DATABAS_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def init_db() -> None:
+    """
+    Inicializa la base de datos SOLO si no existe.
+    Si existe, no ejecuta el SQL otra vez ni muestra el mensaje de inicialización.
+    """
 
-class Base(DeclarativeBase):
-    pass
+    if DB_PATH.exists():
+        print(f"ℹ️ Base de datos encontrada en: {DB_PATH}")
+        return
 
-# Función de utilidad (Inyección de Dependencia)
+    # Si llegamos aquí → la DB NO existe
+    print("🚨 DB no encontrada. Creando y cargando esquema/datos iniciales.")
+
+    if not SQL_PATH.is_file():
+        print(f"❌ Archivo SQL no encontrado: {SQL_PATH}")
+        return
+
+    # Crear carpeta database si no existe
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    # Crear la base de datos y ejecutar el script SQL
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        with SQL_PATH.open("r", encoding="utf-8") as f:
+            sql_script = f.read()
+        conn.executescript(sql_script)
+        conn.commit()
+        print(f"✨ Base de datos inicializada correctamente desde: {SQL_PATH}")
+    finally:
+        conn.close()
+
+
+
+# Inicializar la BBDD (si hace falta) antes de crear el engine
+init_db()
+
+# Configuración de SQLAlchemy
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False},  # Necesario en SQLite + FastAPI
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
+
+Base = declarative_base()
+
+
 def get_db():
+    """
+    Dependencia para FastAPI: abre una sesión por petición y la cierra al final.
+    """
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-# 2. CHEQUEO Y CREACIÓN DE ESQUEMA (DDL)
-# Esta lógica se ejecuta al cargar el módulo 'app.db', antes que los Routers.
-def initialize_database():
-    """
-    Función que crea la estructura de la base de datos si es la primera vez
-    que se carga, utilizando el script DDL.
-    """
-    
-    # ⚠️ Si el archivo .db no existe, debemos ejecutar el DDL y el DML (seeding)
-    # Sin embargo, en esta capa, solo nos aseguraremos de que las tablas existan
-    
-    # Si desea usar Base.metadata.create_all (SOLUCIÓN A), descomente este bloque:
-    # try:
-    #     # Intenta obtener una conexión para verificar si la base de datos funciona.
-    #     conn = engine.connect()
-    #     conn.close()
-    # except Exception as e:
-    #     print(f"Error crítico de conexión: {e}")
-    #     # Aquí debería haber un mecanismo para crear el archivo .db si no existe.
-    #     pass
-    
-    # Para la arquitectura actual (DDL externo), la inicialización debe ejecutarse en main.py.
-    # Si las tablas no se cargan, es porque el DDL externo no se ha ejecutado a tiempo.
-    
-    # SOLUCIÓN TEMPORAL: Crear un placeholder.
-    # Si Base.metadata.create_all() fuera la fuente de verdad (lo cual no lo es en su proyecto)
-    # Base.metadata.create_all(bind=engine)
-    pass
-    
-# initialize_database()
-"""""
-# app/db.py
-# Configuración central de la base de datos (SQLAlchemy)
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from sqlalchemy.orm import Session
-
-# Usamos la URL de la BBDD del plan
-DATABAS_URL = "sqlite:///./cartelera_cine.db"
-
-# check_same_thread es necesario solo para SQLite
-engine = create_engine(DATABAS_URL, connect_args={"check_same_thread": False})
-
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Clase Base de la que heredarán todos nuestros modelos ORM
-class Base(DeclarativeBase):
-    pass
-
-# Función de utilidad (Inyección de Dependencia) para obtener
-# una sesión de BBDD en cada petición de la API.
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        
-"""""

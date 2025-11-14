@@ -18,7 +18,8 @@ from app.config import templates, APP_METADATA, DB_FILE_PATH, SCHEMA_FILE_PATH, 
 # Importamos el mecanismo de carga de SQL (de app/utils.py)
 from app.utils import execute_sql_file 
 # Importamos los componentes de la DB
-from app.db import SessionLocal, get_db
+from app.db import SessionLocal, get_db, Base, engine
+
 
 # --- Importaciones de Modelos, Routers y Services ---
 from app.models import pelicula, genero # Necesario para DDL
@@ -62,21 +63,6 @@ except RuntimeError:
     print(f"⚠️ Advertencia: Creando directorio '{STATIC_DIR}/' para montaje.")
     os.makedirs(STATIC_DIR, exist_ok=True)
     app.mount(f"/{STATIC_DIR}", StaticFiles(directory=STATIC_DIR), name=STATIC_DIR)
-
-
-# B. ORQUESTACIÓN DE ARRANQUE (Inicialización de DB)
-# Usamos las rutas de config y la utilidad de utils
-if not os.path.exists(DB_FILE_PATH):
-    print("🚨 DB no encontrada. Creando y cargando esquema/datos iniciales.")
-    db = SessionLocal()
-    
-    # Usamos la función importada de app/utils.py
-    execute_sql_file(db, SCHEMA_FILE_PATH)
-    execute_sql_file(db, SEED_FILE_PATH)
-    
-    db.close()
-    print("✨ Base de datos inicializada correctamente.")
-
 
 # -------------------------------------------------------------
 # --- 3. INCLUSIÓN DE ROUTERS Y ENDPOINT RAÍZ ---

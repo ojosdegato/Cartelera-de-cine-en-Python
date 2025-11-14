@@ -8,14 +8,25 @@
 
 import os
 from fastapi.templating import Jinja2Templates
+from pathlib import Path
 
 # Obtener el directorio base para referencias de ruta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 1. RUTAS DE ARCHIVOS DE INFRAESTRUCTURA (Movidas desde main.py)
-DB_FILE_PATH = "./cartelera_cine.db"
-SCHEMA_FILE_PATH = "cartelera_schema.sql"
-SEED_FILE_PATH = "seed_data.sql"
+#DB_FILE_PATH = "./database/cartelera_cine.db"
+DB_FILE_PATH = "sqlite:///database/cartelera_cine.db"
+
+#SCHEMA_FILE_PATH = "database/db.sql"
+#SEED_FILE_PATH   = "database/db.sql"
+
+BASE_DIR = Path(__file__).resolve().parent  # si config.py está en app/, esto es app/
+
+SQL_PATH = BASE_DIR / "database" / "db.sql"
+
+SCHEMA_FILE_PATH = str(SQL_PATH)
+SEED_FILE_PATH   = str(SQL_PATH)
+
 STATIC_DIR = "static" # Directorio para archivos estáticos
 
 
