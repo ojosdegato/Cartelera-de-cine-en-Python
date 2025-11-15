@@ -48,10 +48,13 @@ from app.utils_pelicula import cargar_datos_homepage, get_home_title
 # 1. INSTANCIA PRINCIPAL DE LA APLICACIÓN
 app = FastAPI(**APP_METADATA)
 
-# Configuración sección static en main
+# Configuración sección static en main para imagenes, css etc
 from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
+app.mount(
+    "/static",
+    StaticFiles(directory="static"),  # carpeta static en la raíz del proyecto
+    name="static",
+)
 
 
 
