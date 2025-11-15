@@ -1,149 +1,135 @@
 
   # app/main.py
+# app/main.py
 # Punto de entrada principal de la aplicación FastAPI.
-# Contiene solo la orquestación, mounts, manejadores de error y el endpoint raíz.
+# Contiene solo:
+#  - Instancia de la app
+#  - Inicialización de base de datos
+#  - Montaje de estáticos
+#  - Manejador global de errores
+#  - Inclusión de routers
+#  - Endpoint raíz que delega la lógica de Películas a utils_pelicula.py
 
 import os
-from typing import Optional 
-from fastapi import FastAPI, Depends, Query, Request 
-from fastapi.staticfiles import StaticFiles 
-from sqlalchemy.orm import Session 
+from typing import Optional
+
+from fastapi import FastAPI, Depends, Query, Request
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 
 from starlette.responses import HTMLResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException # Para atrapar errores de ruteo
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-# --- Importaciones de Infraestructura y Utilidades (TODO MOVILIZADO) ---
-# Importamos la configuración y las rutas
-from app.config import templates, APP_METADATA, DB_FILE_PATH, SCHEMA_FILE_PATH, SEED_FILE_PATH, STATIC_DIR 
-# Importamos el mecanismo de carga de SQL (de app/utils.py)
-from app.utils import execute_sql_file 
-# Importamos los componentes de la DB
-from app.database.db import SessionLocal, get_db, Base, engine
+# --- Configuración global y utilidades de infraestructura ---
+from app.config import (
+    templates,
+    APP_METADATA,
+    DB_FILE_PATH,
+    SCHEMA_FILE_PATH,
+    SEED_FILE_PATH,
+    STATIC_DIR,
+)
 
-
-
-# --- Importaciones de Modelos, Routers y Services ---
-from app.models import pelicula, genero # Necesario para DDL
-from app.routers import pelicula_router, genero_router 
-from app.services import pelicula_service, genero_service
+from app.database.db import get_db
 
 
-# -------------------------------------------------------------
-# --- 1. INSTANCIA DE APLICACIÓN Y MANEJO DE ERRORES ---
-# -------------------------------------------------------------
+# Importamos modelos para asegurar la creación de tablas
+from app.models import pelicula, genero  # noqa: F401
 
-# A. INSTANCIA DE APLICACIÓN (Usando APP_METADATA de app/config.py)
+# Routers de la aplicación
+from app.routers import pelicula_router, genero_router
+# from app.routers import sala_router, socio_router, login_router  # cuando estén listos
+
+# Utilidades específicas de la entidad Película
+from app.utils_pelicula import cargar_datos_homepage, get_home_title
+
+
+
+# 1. INSTANCIA PRINCIPAL DE LA APLICACIÓN
 app = FastAPI(**APP_METADATA)
 
 
-# B. MANEJO DE ERRORES GLOBAL (404 Not Found)
+
+
+
+
+# 3. MANEJO GLOBAL DE ERRORES HTTP (404, etc.)
 @app.exception_handler(StarletteHTTPException)
-async def custom_http_exception_handler(request: Request, exc: StarletteHTTPException):
+async def custom_http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+):
     """
-    Maneja el error 404 (Not Found) y otros errores HTTP para servir nuestra
-    plantilla HTML personalizada, y el resto de errores HTTP con una respuesta simple.
+    Maneja errores HTTP para servir una plantilla HTML personalizada en el 404
+    y un mensaje HTML genérico para otros códigos.
     """
-    # Caso específico: 404 Not Found
     if exc.status_code == 404:
         try:
-            # Usamos el objeto 'templates' importado de config
-            # Buscará templates/404.html
             return templates.TemplateResponse(
                 "404.html",
                 {"request": request},
                 status_code=404,
             )
         except Exception:
-            # Fallback en caso de que la plantilla 404.html no se pueda cargar
+            # Fallback si falla la carga de la plantilla
             return HTMLResponse(
                 "<h1>404 Not Found</h1><p>Error en el servidor de la aplicación.</p>",
                 status_code=404,
             )
 
-    # Resto de códigos HTTP (403, 500, etc.): respuesta HTML simple
+    # Otros errores HTTP
     return HTMLResponse(
         f"<h1>Error {exc.status_code}</h1><p>{exc.detail}</p>",
         status_code=exc.status_code,
     )
 
 
-
-# -------------------------------------------------------------
-# --- 2. MONTAJE DE ARCHIVOS ESTÁTICOS Y ORQUESTACIÓN ---
-# -------------------------------------------------------------
-
-# A. MONTAJE DE ARCHIVOS ESTÁTICOS (Usando STATIC_DIR de config)
+# 4. MONTAJE DE ARCHIVOS ESTÁTICOS
 try:
     app.mount(f"/{STATIC_DIR}", StaticFiles(directory=STATIC_DIR), name=STATIC_DIR)
 except RuntimeError:
-    print(f"⚠️ Advertencia: Creando directorio '{STATIC_DIR}/' para montaje.")
+    # Si el directorio no existe, lo creamos y volvemos a montar
+    print(f"⚠️ Advertencia: creando directorio '{STATIC_DIR}/' para archivos estáticos.")
     os.makedirs(STATIC_DIR, exist_ok=True)
     app.mount(f"/{STATIC_DIR}", StaticFiles(directory=STATIC_DIR), name=STATIC_DIR)
 
-# -------------------------------------------------------------
-# --- 3. INCLUSIÓN DE ROUTERS Y ENDPOINT RAÍZ ---
-# -------------------------------------------------------------
 
+# 5. INCLUSIÓN DE ROUTERS
 app.include_router(pelicula_router.router)
 app.include_router(genero_router.router)
-#app.include_router(sala_router.router)
-#app.include_router(horario_router.router)
-#app.include_router(venta_router.router)
-#app.include_router(socio_router.router)
-# TODO: Incluir app.include_router(sala_router.router) y otros aquí
+# app.include_router(sala_router.router)
+# app.include_router(socio_router.router)
+# app.include_router(login_router.router)
 
 
+# 6. ENDPOINT RAÍZ (WEB UI) – Delegado a utilidades de Película
 @app.get("/", tags=["Web UI"])
 def homepage_cartelera(
     request: Request,
     db: Session = Depends(get_db),
-    q: Optional[str] = Query(None), 
+    q: Optional[str] = Query(None),
     genero_id: Optional[str] = Query(None),
     duracion_max: Optional[str] = Query(None),
-    disponible: Optional[str] = Query(None)
+    disponible: Optional[str] = Query(None),
 ):
     """
-    [GET] Ruta principal que muestra la cartelera, aplicando filtros dinámicos.
+    Ruta principal de la UI web.
+    La lógica de filtros y carga de datos se delega a utils_pelicula.cargar_datos_homepage.
     """
-    
-    # 1. LIMPIEZA DE PARÁMETROS (La lógica se mantiene en el router para el manejo de Query params)
-    clean_genero_id = int(genero_id) if genero_id and genero_id.isdigit() else None
-    clean_duracion_max = int(duracion_max) if duracion_max and duracion_max.isdigit() else None
-    filtro_disponible_bool = disponible == "True"
-
-    
-    # 2. Obtener la lista de películas filtradas usando el servicio
-    peliculas = pelicula_service.get_peliculas_filtradas(
+    peliculas, generos_disponibles, filtros_activos = cargar_datos_homepage(
         db=db,
-        query=q,
-        genero_id=clean_genero_id,
-        duracion_max=clean_duracion_max,
-        disponible=filtro_disponible_bool
+        q=q,
+        genero_id=genero_id,
+        duracion_max=duracion_max,
+        disponible=disponible,
     )
 
-    # 3. Obtener lista de géneros y crear el diccionario de filtros activos
-    generos_disponibles = genero_service.get_all_generos(db)
-
-    filtros_activos = {
-        'q': q,
-        'genero_id': clean_genero_id,
-        'duracion_max': clean_duracion_max,
-        'disponible': filtro_disponible_bool
-    }
-    
-    # 4. Renderizar la plantilla
     return templates.TemplateResponse(
         "peliculas/index.html",
-        
         {
             "request": request,
-            "titulo": "Gestión de Cartelera - CRUD",
+            "titulo": get_home_title(),
             "peliculas": peliculas,
             "generos": generos_disponibles,
             "filtros_activos": filtros_activos,
         },
     )
-    
-    
-    
-    

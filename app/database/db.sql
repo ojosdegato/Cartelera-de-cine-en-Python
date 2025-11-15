@@ -1,122 +1,42 @@
 -- db.sql
--- Esquema completo + datos iniciales para el proyecto Cartelera de Cine
+-- Seed de datos para el proyecto Cartelera de Cine
+-- Compatibles con inicialización vía SQLAlchemy 
 
 PRAGMA foreign_keys = OFF;
 
------------------------------------------------------------------------
--- LIMPIEZA PREVIA (permite relanzar el script sin errores)
------------------------------------------------------------------------
-DROP TABLE IF EXISTS ventas;
-DROP TABLE IF EXISTS horarios;
-DROP TABLE IF EXISTS socios;
-DROP TABLE IF EXISTS salas;
 DROP TABLE IF EXISTS peliculas;
 DROP TABLE IF EXISTS generos;
 
 -----------------------------------------------------------------------
--- ACTIVAR CLAVES FORÁNEAS AL FINAL DE LA CREACIÓN DEL ESQUEMA
------------------------------------------------------------------------
-
------------------------------------------------------------------------
--- 1. TABLA GENEROS (KARY)
+-- TABLA GENEROS
 -----------------------------------------------------------------------
 CREATE TABLE generos (
     id INTEGER NOT NULL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL UNIQUE,
-    descripcion VARCHAR(500)
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT
 );
 
 -----------------------------------------------------------------------
--- 2. TABLA PELICULAS (JAVIER)
+-- TABLA PELICULAS
 -----------------------------------------------------------------------
 CREATE TABLE peliculas (
     id INTEGER NOT NULL PRIMARY KEY,
-    titulo VARCHAR(255) NOT NULL,
-
-    -- Relación Many-to-One con Genero
-    genero_id INTEGER NOT NULL,
-
+    titulo VARCHAR(200) NOT NULL,
     duracion INTEGER NOT NULL,
     disponible BOOLEAN NOT NULL,
-
-    -- Campos Opcionales (pueden ser NULL en la BBDD)
-    director VARCHAR(100),
-    descripcion VARCHAR(1000),
+    genero_id INTEGER NOT NULL,
+    director VARCHAR(150),
+    descripcion TEXT,
     trailer VARCHAR(255),
     productora VARCHAR(100),
     idioma VARCHAR(50),
     vose BOOLEAN,
-    actores JSON, -- Lista de actores (almacenada como JSON/string en SQLite)
-
+    actores JSON,
     FOREIGN KEY (genero_id) REFERENCES generos (id)
 );
 
------------------------------------------------------------------------
--- 3. TABLA SALAS (REYES)
------------------------------------------------------------------------
-CREATE TABLE salas (
-    id INTEGER NOT NULL PRIMARY KEY,
-    numero VARCHAR(50) NOT NULL UNIQUE, -- Usamos VARCHAR por si son 'Sala IMAX' o 'Sala A'
-    capacidad INTEGER NOT NULL,
-    tipo VARCHAR(50) NOT NULL, -- 'normal', '3d', 'imax', 'premium'
-    precio_base FLOAT NOT NULL,
-    disponible BOOLEAN NOT NULL DEFAULT 1
-);
-
------------------------------------------------------------------------
--- 4. TABLA SOCIOS (Javier - Mejora)
------------------------------------------------------------------------
-CREATE TABLE socios (
-    id INTEGER NOT NULL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    apellidos VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    telefono VARCHAR(20),
-    fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    activo BOOLEAN NOT NULL DEFAULT 1
-);
-
------------------------------------------------------------------------
--- 5. TABLA HORARIOS (MANUEL)
------------------------------------------------------------------------
-CREATE TABLE horarios (
-    id INTEGER NOT NULL PRIMARY KEY,
-
-    -- Relaciones Many-to-One
-    pelicula_id INTEGER NOT NULL,
-    sala_id INTEGER NOT NULL,
-
-    hora VARCHAR(20) NOT NULL, -- Usamos VARCHAR para simplificar el manejo de datetime/string en SQLite
-    disponible BOOLEAN NOT NULL,
-
-    FOREIGN KEY (pelicula_id) REFERENCES peliculas (id),
-    FOREIGN KEY (sala_id) REFERENCES salas (id)
-);
-
------------------------------------------------------------------------
--- 6. TABLA VENTAS (IÑAKI)
------------------------------------------------------------------------
-CREATE TABLE ventas (
-    id INTEGER NOT NULL PRIMARY KEY,
-
-    -- Relación con Horario (Define qué función se vendió)
-    horario_id INTEGER NOT NULL,
-
-    -- Relación OPCIONAL con Socio (Para ventas con fidelidad)
-    socio_id INTEGER,
-
-    precio_total FLOAT NOT NULL,
-    cantidad INTEGER NOT NULL,
-    metodo_pago VARCHAR(50) NOT NULL, -- 'efectivo', 'tarjeta', 'cripto'
-
-    FOREIGN KEY (horario_id) REFERENCES horarios (id),
-    FOREIGN KEY (socio_id) REFERENCES socios (id)
-);
-
------------------------------------------------------------------------
--- ACTIVAR CLAVES FORÁNEAS
------------------------------------------------------------------------
 PRAGMA foreign_keys = ON;
+
 
 -----------------------------------------------------------------------
 -- 1. INSERCIÓN DE 12 GÉNEROS (Con IDs fijos para Claves Foráneas)
@@ -205,3 +125,5 @@ INSERT INTO peliculas (titulo, duracion, disponible, genero_id, director, descri
 ('Aventuras en el Heap', 75, 1, 12, 'Manuel J. Marín', 'Una colorida exploración animada sobre la gestión de memoria.', '["Pepe Coder"]', 'http://trailer.heap.com/adventures', 'Animaciones Dev', 'Castellano', 0),
 ('La Leyenda del Binario', 78, 1, 12, 'Kary H.', 'Una aventura animada para niños sobre los secretos de los 0s y 1s.', '["Pepe Coder"]', 'http://trailer.binario.com/legend', 'Animaciones Dev', 'Inglés', 1),
 ('El Viaje del Paquete TCP', 80, 1, 12, 'Javier C.', 'Una animación educativa sobre cómo un paquete de datos navega por Internet.', '["Packy"]', 'http://trailer.tcp.com/journey', 'Animaciones Dev', 'Castellano', 0);
+
+

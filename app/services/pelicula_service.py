@@ -5,9 +5,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.pelicula import PeliculaORM
 from app.schemas.pelicula import PeliculaCreate, PeliculaUpdate
 from typing import List, Optional
-from sqlalchemy import or_, String, func 
-
-
+from sqlalchemy import or_, func, cast, String
 
 
 # --- Servicio 1: Añadir película ---
@@ -88,85 +86,59 @@ def get_pelicula_detalle(db: Session, pelicula_id: int) -> Optional[PeliculaORM]
     ).filter(PeliculaORM.id == pelicula_id).first()
 
 
-# Nueva función para aplicar los filtros dinámicos
+# Nueva función para aplicar los filtros dinámicos en buscador y genero
 def get_peliculas_filtradas(
     db: Session,
+    query: Optional[str] = None,
     genero_id: Optional[int] = None,
     duracion_max: Optional[int] = None,
-    disponible: Optional[bool] = None # USAMOS BOOL
+    disponible: Optional[bool] = None,
 ) -> List[PeliculaORM]:
     """
-    Obtiene películas aplicando filtros dinámicos (género, duración, disponibilidad).
-    """
-    # 1. Iniciar la consulta base con eager loading para el género
-    query = db.query(PeliculaORM).options(
-        joinedload(PeliculaORM.genero)
-    )
+    Obtiene películas aplicando de forma combinada:
 
-    # 2. Construir la lista de condiciones (filtros)
-    filtros = []
-    
-    if genero_id is not None:
-        filtros.append(PeliculaORM.genero_id == genero_id)
-        
-    if duracion_max is not None and duracion_max > 0:
-        filtros.append(PeliculaORM.duracion <= duracion_max)
-        
-    # Aplicar filtro de Clasificación (Disponibilidad)
-    # Si el valor es True, filtramos por disponible=True
-    if disponible: 
-        filtros.append(PeliculaORM.disponible == True)
+    - Búsqueda de texto global (query) sobre:
+        * título
+        * director
+        * descripción
+        * actores (columna JSON, convertida a texto)
+    - Filtro por género (genero_id)
+    - Filtro por duración máxima (duracion_max)
+    - Filtro por disponibilidad (disponible=True)
 
-    # 3. Aplicar todos los filtros y ejecutar la consulta
-    # Aseguramos el orden alfabético para una mejor UX
-    return query.filter(*filtros).order_by(PeliculaORM.titulo).all()
-
-# Buscador
-def get_peliculas_filtradas(
-    db: Session,
-    # Nuevo parámetro de búsqueda
-    query: Optional[str] = None, 
-    genero_id: Optional[int] = None,
-    duracion_max: Optional[int] = None,
-    disponible: Optional[bool] = None
-) -> List[PeliculaORM]:
+    Todos los filtros se combinan con AND.
     """
-    Obtiene películas aplicando filtros dinámicos y búsqueda de texto global.
-    """
-    # 1. Iniciar la consulta base
+    # 1. Consulta base con eager loading del género
     query_stmt = db.query(PeliculaORM).options(
         joinedload(PeliculaORM.genero)
     )
 
-    # 2. Construir la lista de condiciones (filtros)
     filtros = []
-    
-    # A. BÚSQUEDA GLOBAL (OR LÓGICO)
+
+    # A) BÚSQUEDA GLOBAL (OR lógico)
     if query:
-        # Preparamos el término de búsqueda para LIKE (case-insensitive)
-        # Convertimos la entrada del usuario a minúsculas, asegurando la uniformidad
-        search_term = f"%{query.lower()}%" 
-        
-        # Usamos or_ para buscar la palabra clave en Título, Director y Descripción
-        # Todos los campos de la DB también se convierten a minúsculas con func.lower()
-        filtros.append(or_(
-            func.lower(PeliculaORM.titulo).like(search_term),
-            func.lower(PeliculaORM.director).like(search_term),
-            func.lower(PeliculaORM.descripcion).like(search_term),
-            # Lógica para Actores: Busca la coincidencia dentro del string JSON
-            PeliculaORM.actores.like(search_term) 
-        ))
-    
-    # B. FILTROS PARAMÉTRICOS (AND LÓGICO)
+        term = f"%{query.lower()}%"
+
+        filtros.append(
+            or_(
+                func.lower(PeliculaORM.titulo).like(term),
+                func.lower(PeliculaORM.director).like(term),
+                func.lower(PeliculaORM.descripcion).like(term),
+                # Actores: la columna JSON se castea a texto y se busca ahí
+                func.lower(cast(PeliculaORM.actores, String)).like(term),
+            )
+        )
+
+    # B) FILTROS PARAMÉTRICOS (AND lógico)
     if genero_id is not None:
         filtros.append(PeliculaORM.genero_id == genero_id)
-        
+
     if duracion_max is not None and duracion_max > 0:
         filtros.append(PeliculaORM.duracion <= duracion_max)
-        
-    # El filtro 'disponible' (clasificación) solo se aplica si es True
-    if disponible: 
+
+    # Si disponible es True, filtramos solo las disponibles; si es None/False, no filtramos
+    if disponible:
         filtros.append(PeliculaORM.disponible == True)
 
-    # 3. Aplicar todos los filtros y ejecutar la consulta
+    # 3) Aplicar filtros y ordenar
     return query_stmt.filter(*filtros).order_by(PeliculaORM.titulo).all()
