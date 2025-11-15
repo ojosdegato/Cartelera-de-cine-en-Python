@@ -135,7 +135,15 @@
 
     <!-- CUERPO PRINCIPAL -->
     <main class="container my-5">
-        <h1 class="text-center mb-4 text-primary-accent"><i class="fas fa-laptop-code me-2"></i> Gestión de Cartelera de Cine</h1>
+        <h1 class="text-center mb-4 text-primary-accent"><i class="fas fa-laptop-code me-2"></i>Cartelera de cinema</h1>
+        
+        <!-- IMAGEN PRINCIPAL DE PORTADA -->
+        <div class="mb-5">
+            <img src="{{ url_for('static', path='img/cinema.jpg') }}" 
+            class="img-fluid rounded shadow-sm w-100"
+            alt="Cine - Cartelera"
+            style="max-height: 380px; object-fit: cover;">
+        </div>
         
         <!-- Zona de Filtros -->
         <form method="GET" action="/" class="p-4 mb-5 border rounded-lg bg-white shadow-sm">
