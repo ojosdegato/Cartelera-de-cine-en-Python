@@ -52,8 +52,6 @@ El proyecto sigue una **arquitectura modular**, separando:
 📂 **Estructura del proyecto:**
 . ├── app/ │ ├── main.py │ ├── models/ # Entidades (pelicula, genero, sala, horario, venta, socio, login) │ ├── routes/ # Endpoints CRUD por módulo │ ├── database/ # Configuración y base de datos SQLite │ ├── templates/ # Vistas HTML (Jinja2) │ └── static/ # Recursos estáticos (CSS, JS, imágenes) ├── requirements.txt ├── README.md └── run.py
 
-Código
-
 ---
 
 ## 🎬 Entidades principales
@@ -75,70 +73,8 @@ Código
    cd Proyecto_Adecco
 Crear entorno virtual (opcional pero recomendado)
 
-bash
-# Linux / MacOS
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Windows (PowerShell)
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-Instalar dependencias
-
-bash
-pip install -r requirements.txt
-▶️ Ejecución
-Servidor de desarrollo con Uvicorn
-
-bash
-uvicorn app.main:app --reload
-API disponible en:
-
-Swagger UI → http://127.0.0.1:8000/docs
-
-ReDoc → http://127.0.0.1:8000/redoc
-
-Ejecución alternativa
-
-bash
-python run.py
-🗄️ Base de Datos
-Motor: SQLite (cartelera_cine.db)
-
-Ubicación: app/database/
-
-Inicialización:
-
-bash
-python -m app.cartelera_cine.db
-Esto crea las tablas y carga datos de ejemplo (películas, horarios, etc.).
-
-🌐 Endpoints principales
-/peliculas → CRUD de películas y filtros.
-
-/generos → Gestión de géneros.
-
-/salas → Administración de salas.
-
-/horarios → Gestión de sesiones.
-
-/ventas → Registro de ventas y recaudación.
-
-/socios → Alta y gestión de socios.
-
-/auth → Registro, login y credenciales.
-
-🚀 Futuras Mejoras
-Sistema completo de compra de entradas (frontend + backend).
-
-Panel de administración web.
-
-Estadísticas avanzadas (ventas, ocupación, popularidad).
-
-Machine Learning para recomendaciones personalizadas.
-
 🤝 Contribuciones
 Este proyecto está en constante evolución. Cada aportación suma: pull requests, issues y sugerencias son bienvenidas.
 
 📜 Licencia
-Este proyecto se distribuye bajo licencia MIT.
+Este proyecto se distribuye bajo licencia GPL3.
