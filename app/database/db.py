@@ -1,32 +1,28 @@
-# app/db.py
 from pathlib import Path
 import sqlite3
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Directorio base del paquete app ( .../Cartelera-de-cine-en-Python/app )
+# Directorio base del módulo database ( .../app/database )
 BASE_DIR = Path(__file__).resolve().parent
 
-# Rutas reales
-DB_PATH = BASE_DIR / "database" / "cartelera_cine.db"
-SQL_PATH = BASE_DIR / "database" / "db.sql"
+# Rutas REALES
+DB_PATH = BASE_DIR / "cartelera_cine.db"   # /app/database/cartelera_cine.db
+SQL_PATH = BASE_DIR / "db.sql"             # /app/database/db.sql
 
-# URL que usará SQLAlchemy (alineada con DB_PATH)
+# URL para SQLAlchemy
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 
 def init_db() -> None:
     """
     Inicializa la base de datos SOLO si no existe.
-    Si existe, no ejecuta el SQL otra vez ni muestra el mensaje de inicialización.
     """
-
     if DB_PATH.exists():
         print(f"ℹ️ Base de datos encontrada en: {DB_PATH}")
         return
 
-    # Si llegamos aquí → la DB NO existe
     print("🚨 DB no encontrada. Creando y cargando esquema/datos iniciales.")
 
     if not SQL_PATH.is_file():
@@ -36,7 +32,6 @@ def init_db() -> None:
     # Crear carpeta database si no existe
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-    # Crear la base de datos y ejecutar el script SQL
     conn = sqlite3.connect(DB_PATH)
     try:
         with SQL_PATH.open("r", encoding="utf-8") as f:
@@ -48,14 +43,12 @@ def init_db() -> None:
         conn.close()
 
 
-
-# Inicializar la BBDD (si hace falta) antes de crear el engine
+# Ejecutar inicialización al importar el módulo
 init_db()
 
-# Configuración de SQLAlchemy
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Necesario en SQLite + FastAPI
+    connect_args={"check_same_thread": False},
 )
 
 SessionLocal = sessionmaker(
@@ -68,9 +61,6 @@ Base = declarative_base()
 
 
 def get_db():
-    """
-    Dependencia para FastAPI: abre una sesión por petición y la cierra al final.
-    """
     db = SessionLocal()
     try:
         yield db

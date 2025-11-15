@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 # --- Importaciones Específicas del Proyecto (Rompiendo la Circularidad) ---
-from app.db import get_db
+from app.database.db import get_db
+
 from app.config import templates  # Motor Jinja2, importado de un archivo de configuración
 from app.schemas.pelicula import (
     PeliculaRead,

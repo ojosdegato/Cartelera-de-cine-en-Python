@@ -18,7 +18,8 @@ from app.config import templates, APP_METADATA, DB_FILE_PATH, SCHEMA_FILE_PATH, 
 # Importamos el mecanismo de carga de SQL (de app/utils.py)
 from app.utils import execute_sql_file 
 # Importamos los componentes de la DB
-from app.db import SessionLocal, get_db, Base, engine
+from app.database.db import SessionLocal, get_db, Base, engine
+
 
 
 # --- Importaciones de Modelos, Routers y Services ---

@@ -3,7 +3,7 @@
 
 from sqlalchemy import String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db import Base # Importamos la Base declarativa
+from app.database.db import Base # Importamos la Base declarativa
 from typing import List, TYPE_CHECKING
 
 # Importación de tipo para la relación bidireccional

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.db import get_db
+from app.database.db import get_db
 from app.schemas.genero import GeneroRead, GeneroCreate, GeneroUpdate, GeneroReadWithPeliculas
 from app.services import genero_service
 
