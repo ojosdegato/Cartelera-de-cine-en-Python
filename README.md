@@ -5,29 +5,34 @@
    
 🎥 Cartelera de Cine en Python
 
-Backend profesional para la gestión integral de una cartelera digital cinematográfica
+La magia del cine… programada en Python 🐍🍿
 
-Bienvenido al repositorio oficial de Cartelera de Cine, una aplicación desarrollada en Python cuyo objetivo es gestionar de forma eficiente la cartelera digital de un cine. Este proyecto forma parte del itinerario formativo Python + Inteligencia Artificial, integrando programación estructurada, POO, bases de datos, APIs y arquitectura web moderna.
+🛡️ Badges del Proyecto
+<p align="center"> <img src="https://img.shields.io/badge/Python-3.12-blue" /> <img src="https://img.shields.io/badge/FastAPI-ASGI%20Framework-009688" /> <img src="https://img.shields.io/badge/SQLAlchemy-ORM-orange" /> <img src="https://img.shields.io/badge/SQLite-Database-lightgrey" /> <img src="https://img.shields.io/badge/Status-En%20desarrollo-yellow" /> </p>
+1. Introducción
 
-🎯 Finalidad del Proyecto
+Bienvenido al repositorio oficial de Cartelera de Cine, una aplicación desarrollada en Python + FastAPI para gestionar la programación digital de un cine.
+Combina POO, bases de datos, APIs REST, arquitectura modular y tecnologías modernas para su ejecución.
 
-El sistema se ha diseñado como un backend completo capaz de:
+2. Finalidad del Proyecto
 
-📌 Mostrar información de películas disponibles en cartelera.
+El backend permite:
 
-🕒 Gestionar horarios y salas.
+📌 Mostrar películas en cartelera
 
-🎫 Administrar ventas de entradas y precios.
+🕒 Gestionar horarios y salas
 
-🎭 Organizar géneros y clasificaciones.
+🎫 Registrar ventas de entradas
 
-👥 Gestionar usuarios, autenticación y socios.
+🎭 Administrar géneros
 
-📚 Aplicar POO, estructuras de datos y buenas prácticas de desarrollo.
+👥 Gestionar usuarios, login y socios
 
-🚀 Integrar tecnologías modernas como FastAPI y SQLAlchemy.
+🚀 Usar FastAPI + SQLAlchemy
 
-👥 Equipo de Desarrollo
+📚 Aplicar POO, capas de negocio y buenas prácticas
+
+3. Equipo de Desarrollo
 
 Javier Cachón Garrido
 
@@ -39,7 +44,7 @@ Reyes Delestal Barrios
 
 Iñaki Huete Montes
 
-🛠️ Tecnologías Utilizadas
+4. Tecnologías Utilizadas
 
 Python 3
 
@@ -49,31 +54,45 @@ SQLAlchemy (ORM)
 
 SQLite
 
+Pydantic
+
 Jinja2
 
 Bootstrap 4/5
 
-HTML5, CSS3, JavaScript
-
-SQL
+HTML / CSS / JavaScript
 
 Visual Studio Code
 
-🏛️ Arquitectura del Sistema
+5. Arquitectura General
+┌──────────────────────────────┐
+│            Cliente           │
+│   Navegador / SPA / Móvil    │
+└───────────────┬──────────────┘
+                │ HTTP/JSON
+                ▼
+      ┌───────────────────────┐
+      │        FastAPI        │
+      │    (Controladores)    │
+      └─────────────┬─────────┘
+                    │
+                    ▼
+       ┌──────────────────────┐
+       │       Servicios       │
+       │   (Lógica negocio)    │
+       └────────────┬──────────┘
+                    │
+                    ▼
+      ┌────────────────────────┐
+      │    SQLAlchemy (ORM)    │
+      └──────────────┬─────────┘
+                     │
+                     ▼
+        ┌──────────────────────┐
+        │      SQLite DB       │
+        └──────────────────────┘
 
-El proyecto adopta una arquitectura modular, separando:
-
-Entidades de dominio
-
-Lógica de negocio
-
-Servicios (endpoints REST, vistas HTML)
-
-Capa de persistencia (ORM + SQLite)
-
-Esto facilita la escalabilidad, el mantenimiento y la integración con futuros frontends.
-
-📁 Estructura del Proyecto
+6. Estructura del Proyecto
 .
 ├── app/
 │   ├── main.py
@@ -114,306 +133,143 @@ Esto facilita la escalabilidad, el mantenimiento y la integración con futuros f
 ├── README.md
 └── run.py
 
-🎬 Entidades del Sistema
+7. Modelo de Datos (ER Diagram)
+generos (1) ────< (N) peliculas
 
-A continuación se describen todas las entidades, sus campos, sus responsabilidades y las relaciones entre ellas.
+peliculas (1) ────< (N) horarios >──── (1) salas
 
+horarios (1) ────< (N) ventas
+
+logins (1) ────(0..1) socios
+
+socios (1) ────< (N) ventas    [opcional]
+
+8. Entidades y Campos
 🎞️ Pelicula
-
-Responsable: Javier Cachón
-
-Representa una película disponible o no en la cartelera.
-
-Campos
-
-id: int
-
-titulo: string
-
-genero_id: int (FK → generos.id)
-
-duracion: int
-
-director: string
-
-descripcion: string
-
-trailer: string
-
-productora: string
-
-idioma: string
-
-VOSE: boolean
-
-actores: lista
-
-disponible: boolean
-
-Relaciones
-
-Pelicula → Género (N:1)
-
-Pelicula → Horario (1:N, navegación desde Horario)
-
-Servicios
-
-Crear, listar, editar y eliminar películas
-
-Búsquedas avanzadas y filtrado (futuro)
-
-🏟️ Sala
-
-Responsable: Reyes
-
-Representa una sala física del cine.
-
-Campos
-
-id
-
-numero
-
-capacidad
-
-tipo (normal, 3D, IMAX, premium)
-
-precio_base
-
-Relaciones
-
-Sala → Horarios (1:N)
-
-Servicios
-
-CRUD de salas
-
-Mantenimiento y suplementos futuros
-
-🕒 Horario
-
-Responsable: Manuel
-
-Sesión concreta de una película en una sala.
-
-Campos
-
-id
-
-pelicula_id
-
-sala_id
-
-hora
-
-disponible
-
-Relaciones
-
-Horario → Película
-
-Horario → Sala
-
-Horario → Ventas
-
-Servicios
-
-Crear, listar, editar y cancelar horarios
-
-💳 Venta
-
-Responsable: Iñaki
-
-Representa la compra de entradas.
-
-Campos
-
-id
-
-horario_id
-
-precio_total
-
-cantidad
-
-metodo_pago
-
-socio_id (opcional)
-
-Relaciones
-
-Venta → Horario
-
-Venta → Socio (opcional)
-
-Servicios
-
-Registrar ventas
-
-Consultas de recaudación
-
-Tickets (futuro)
+{
+  "id": "int",
+  "titulo": "string",
+  "genero_id": "int",
+  "duracion": "int",
+  "director": "string",
+  "descripcion": "string",
+  "trailer": "string",
+  "productora": "string",
+  "idioma": "string",
+  "VOSE": "boolean",
+  "actores": "list<string>",
+  "disponible": "boolean"
+}
 
 🏷️ Género
+{
+  "id": "int",
+  "nombre": "string",
+  "descripcion": "string"
+}
 
-Responsable: Kary
+🏟️ Sala
+{
+  "id": "int",
+  "numero": "int",
+  "capacidad": "int",
+  "tipo": "normal|3D|IMAX|premium",
+  "precio_base": "float"
+}
 
-Campos
+🕒 Horario
+{
+  "id": "int",
+  "pelicula_id": "int",
+  "sala_id": "int",
+  "hora": "datetime",
+  "disponible": "boolean"
+}
 
-id
+💳 Venta
+{
+  "id": "int",
+  "horario_id": "int",
+  "precio_total": "float",
+  "cantidad": "int",
+  "metodo_pago": "enum",
+  "socio_id": "int (optional)"
+}
 
-nombre
+🔐 Login
+{
+  "id": "int",
+  "username": "string",
+  "email": "string",
+  "password_hash": "string",
+  "rol": "usuario | administrador",
+  "activo": "boolean",
+  "bloqueado": "boolean",
+  "creado_en": "datetime",
+  "actualizado_en": "datetime"
+}
 
-descripcion
+👥 Socio
+{
+  "id": "int",
+  "numero_socio": "string",
+  "login_id": "int",
+  "email": "string",
+  "nivel": "Basic | Silver | Gold | VIP",
+  "puntos": "int",
+  "fecha_alta": "datetime",
+  "activo": "boolean"
+}
 
-Relaciones
-
-Género → Peliculas
-
-Servicios
-
-CRUD de géneros
-
-🔐 Login / Autenticación
-
-Responsable: Javier Cachón
-
-Campos
-
-id
-
-username
-
-email
-
-password_hash
-
-rol
-
-activo
-
-bloqueado
-
-creado_en
-
-actualizado_en
-
-Relación
-
-Login → Socio (0..1 : 1)
-
-Servicios
-
-Registro, login, logout
-
-Cambiar contraseña
-
-Gestión de estados
-
-2FA futuro
-
-👥 Socio / Fidelización
-
-Responsable: Javier Cachón
-
-Campos
-
-id
-
-numero_socio
-
-login_id (opcional)
-
-email
-
-nivel
-
-puntos
-
-fecha_alta
-
-activo
-
-Relaciones
-
-Socio ↔ Login
-
-Socio → Ventas
-
-Servicios
-
-Gestión integral de socios
-
-Puntos, niveles, historial
-
-🔗 Modelo de Datos y Relaciones
-
-Resumen simplificado:
-
-generos (1) ────< (N) peliculas
-peliculas (1) ────< (N) horarios >──── (1) salas
-horarios (1) ────< (N) ventas
-logins (1) ────(0..1) socios
-socios (1) ────< (N) ventas   (opcional)
-
-📦 Instalación de Dependencias
-1. Clonar repositorio
+9. Instalación
 git clone https://github.com/HueteDevs/Proyecto_Adecco
 cd Proyecto_Adecco
 
-2. Crear entorno virtual
+Crear entorno virtual
 python3 -m venv .venv
 source .venv/bin/activate
 
-3. Instalar dependencias
+Instalar dependencias
 pip install -r requirements.txt
 
-▶️ Ejecución del Proyecto
-1. Servidor de desarrollo
+10. Ejecución del Proyecto
+Servidor de desarrollo
 uvicorn app.main:app --reload
 
-
-Documentación automática:
+Documentación API
 
 http://127.0.0.1:8000/docs
+ (Swagger)
 
 http://127.0.0.1:8000/redoc
+ (ReDoc)
 
-2. Ejecutar desde run.py
+Alternativa
 python run.py
 
-🗄️ Base de Datos
-Archivos clave
+11. Endpoints por Módulo
+/peliculas   → CRUD completo
+/generos     → Catálogo de géneros
+/salas       → Gestión de salas
+/horarios    → Programación del cine
+/ventas      → Registro de ventas
+/socios      → Fidelización
+/auth        → Login y seguridad
 
-app/database/db.py
+12. Futuras Mejoras
 
-app/database/db.sql
+Sistema completo de venta de entradas (frontend + backend)
 
-app/database/cartelera_cine.db
+Panel de administración
 
-Regenerar base de datos (desarrollo)
+UI cinematográfica
 
-Basta con eliminar el archivo .db y volver a ejecutar la aplicación.
+Estadísticas avanzadas
 
-🌐 Endpoints FastAPI
+Recomendador con IA
 
-Los endpoints están organizados por módulos:
+Tickets con QR
 
-/peliculas
+13. Licencia
 
-/generos
-
-/salas
-
-/horarios
-
-/ventas
-
-/socios
-
-/auth
-
-Ejemplo de uso en main.py:
-
-app.include_router(peliculas.router, prefix="/peliculas", tags=["Películas"])
-app.include_router(generos.router,   prefix="/generos",   tags=["Géneros"])
+MIT License.
