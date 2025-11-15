@@ -3,273 +3,142 @@
   <img src="banner_adecco.png" alt="HueteDevs banner" width="750" />
   </p>
    
-🎥 Cartelera de Cine en Python
+# 🎬 Cartelera de Cine en Python
 
-La magia del cine… programada en Python 🐍🍿
+Bienvenido al repositorio oficial de **Cartelera de Cine**, una aplicación desarrollada en **Python** cuyo objetivo es gestionar de forma eficiente la cartelera digital de un cine.  
+Este proyecto forma parte del aprendizaje del curso **Python + Inteligencia Artificial**, combinando programación estructurada, POO, bases de datos, APIs y arquitectura web moderna.
 
-🛡️ Badges del Proyecto
-<p align="center"> <img src="https://img.shields.io/badge/Python-3.12-blue" /> <img src="https://img.shields.io/badge/FastAPI-ASGI%20Framework-009688" /> <img src="https://img.shields.io/badge/SQLAlchemy-ORM-orange" /> <img src="https://img.shields.io/badge/SQLite-Database-lightgrey" /> <img src="https://img.shields.io/badge/Status-En%20desarrollo-yellow" /> </p>
-1. Introducción
+---
 
-Bienvenido al repositorio oficial de Cartelera de Cine, una aplicación desarrollada en Python + FastAPI para gestionar la programación digital de un cine.
-Combina POO, bases de datos, APIs REST, arquitectura modular y tecnologías modernas para su ejecución.
+## 🚀 Finalidad del Proyecto
+El sistema backend permite:
+- 📌 Mostrar información de películas disponibles en cartelera.
+- 🕒 Gestionar horarios y salas.
+- 🎫 Administrar ventas de entradas y precios.
+- 🎭 Organizar géneros y clasificaciones.
+- 👥 Gestionar usuarios, autenticación y socios.
+- 📚 Aplicar POO, estructuras de datos y buenas prácticas de desarrollo.
+- ⚡ Integrar tecnologías modernas como **FastAPI** y **SQLAlchemy**.
 
-2. Finalidad del Proyecto
+---
 
-El backend permite:
+## 👥 Equipo de Desarrollo
+- Javier Cachón Garrido  
+- Kary Haro Pérez  
+- Manuel Jesús Marín García  
+- Reyes Delestal Barrios  
+- Iñaki Huete Montes  
 
-📌 Mostrar películas en cartelera
+---
 
-🕒 Gestionar horarios y salas
+## 🛠️ Tecnologías utilizadas
+- Python 3  
+- FastAPI  
+- SQLAlchemy (ORM)  
+- SQLite  
+- Jinja2  
+- Bootstrap 4/5  
+- HTML5, CSS3, JavaScript  
+- Visual Studio Code  
 
-🎫 Registrar ventas de entradas
+---
 
-🎭 Administrar géneros
+## 🏛️ Arquitectura del Sistema
+El proyecto sigue una **arquitectura modular**, separando:
+- Entidades de dominio (modelos).
+- Lógica de negocio (servicios).
+- Servicios web (endpoints y vistas).
 
-👥 Gestionar usuarios, login y socios
+📂 **Estructura del proyecto:**
+. ├── app/ │ ├── main.py │ ├── models/ # Entidades (pelicula, genero, sala, horario, venta, socio, login) │ ├── routes/ # Endpoints CRUD por módulo │ ├── database/ # Configuración y base de datos SQLite │ ├── templates/ # Vistas HTML (Jinja2) │ └── static/ # Recursos estáticos (CSS, JS, imágenes) ├── requirements.txt ├── README.md └── run.py
 
-🚀 Usar FastAPI + SQLAlchemy
+Código
 
-📚 Aplicar POO, capas de negocio y buenas prácticas
+---
 
-3. Equipo de Desarrollo
+## 🎬 Entidades principales
+- **Película** 🎞️ → Información de películas, relación con géneros y horarios.  
+- **Sala** 🏟️ → Representa las salas físicas del cine.  
+- **Horario** 🕒 → Sesiones de películas en salas y horarios específicos.  
+- **Venta** 💳 → Registro de entradas vendidas y métodos de pago.  
+- **Género** 🏷️ → Catálogo de géneros cinematográficos.  
+- **Login / Usuario** 🔐 → Autenticación y roles de usuario.  
+- **Socio / Fidelización** 👥 → Gestión de clientes registrados y programa de puntos.  
 
-Javier Cachón Garrido
+---
 
-Kary Haro Pérez
+## 📦 Instalación
 
-Manuel Jesús Marín García
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/HueteDevs/Proyecto_Adecco
+   cd Proyecto_Adecco
+Crear entorno virtual (opcional pero recomendado)
 
-Reyes Delestal Barrios
-
-Iñaki Huete Montes
-
-4. Tecnologías Utilizadas
-
-Python 3
-
-FastAPI
-
-SQLAlchemy (ORM)
-
-SQLite
-
-Pydantic
-
-Jinja2
-
-Bootstrap 4/5
-
-HTML / CSS / JavaScript
-
-Visual Studio Code
-
-5. Arquitectura General
-┌──────────────────────────────┐
-│            Cliente           │
-│   Navegador / SPA / Móvil    │
-└───────────────┬──────────────┘
-                │ HTTP/JSON
-                ▼
-      ┌───────────────────────┐
-      │        FastAPI        │
-      │    (Controladores)    │
-      └─────────────┬─────────┘
-                    │
-                    ▼
-       ┌──────────────────────┐
-       │       Servicios       │
-       │   (Lógica negocio)    │
-       └────────────┬──────────┘
-                    │
-                    ▼
-      ┌────────────────────────┐
-      │    SQLAlchemy (ORM)    │
-      └──────────────┬─────────┘
-                     │
-                     ▼
-        ┌──────────────────────┐
-        │      SQLite DB       │
-        └──────────────────────┘
-
-6. Estructura del Proyecto
-.
-├── app/
-│   ├── main.py
-│   ├── models/
-│   │   ├── pelicula.py
-│   │   ├── genero.py
-│   │   ├── sala.py
-│   │   ├── horario.py
-│   │   ├── venta.py
-│   │   ├── socio.py
-│   │   └── login.py
-│   ├── routes/
-│   │   ├── peliculas.py
-│   │   ├── generos.py
-│   │   ├── salas.py
-│   │   ├── horarios.py
-│   │   ├── ventas.py
-│   │   ├── socios.py
-│   │   └── login.py
-│   ├── database/
-│   │   ├── db.py
-│   │   ├── db.sql
-│   │   └── cartelera_cine.db
-│   ├── templates/
-│   │   ├── base.html
-│   │   ├── peliculas/
-│   │   ├── generos/
-│   │   ├── salas/
-│   │   ├── horarios/
-│   │   ├── ventas/
-│   │   ├── socios/
-│   │   └── login/
-│   └── static/
-│       ├── css/
-│       ├── js/
-│       └── img/
-├── requirements.txt
-├── README.md
-└── run.py
-
-7. Modelo de Datos (ER Diagram)
-generos (1) ────< (N) peliculas
-
-peliculas (1) ────< (N) horarios >──── (1) salas
-
-horarios (1) ────< (N) ventas
-
-logins (1) ────(0..1) socios
-
-socios (1) ────< (N) ventas    [opcional]
-
-8. Entidades y Campos
-🎞️ Pelicula
-{
-  "id": "int",
-  "titulo": "string",
-  "genero_id": "int",
-  "duracion": "int",
-  "director": "string",
-  "descripcion": "string",
-  "trailer": "string",
-  "productora": "string",
-  "idioma": "string",
-  "VOSE": "boolean",
-  "actores": "list<string>",
-  "disponible": "boolean"
-}
-
-🏷️ Género
-{
-  "id": "int",
-  "nombre": "string",
-  "descripcion": "string"
-}
-
-🏟️ Sala
-{
-  "id": "int",
-  "numero": "int",
-  "capacidad": "int",
-  "tipo": "normal|3D|IMAX|premium",
-  "precio_base": "float"
-}
-
-🕒 Horario
-{
-  "id": "int",
-  "pelicula_id": "int",
-  "sala_id": "int",
-  "hora": "datetime",
-  "disponible": "boolean"
-}
-
-💳 Venta
-{
-  "id": "int",
-  "horario_id": "int",
-  "precio_total": "float",
-  "cantidad": "int",
-  "metodo_pago": "enum",
-  "socio_id": "int (optional)"
-}
-
-🔐 Login
-{
-  "id": "int",
-  "username": "string",
-  "email": "string",
-  "password_hash": "string",
-  "rol": "usuario | administrador",
-  "activo": "boolean",
-  "bloqueado": "boolean",
-  "creado_en": "datetime",
-  "actualizado_en": "datetime"
-}
-
-👥 Socio
-{
-  "id": "int",
-  "numero_socio": "string",
-  "login_id": "int",
-  "email": "string",
-  "nivel": "Basic | Silver | Gold | VIP",
-  "puntos": "int",
-  "fecha_alta": "datetime",
-  "activo": "boolean"
-}
-
-9. Instalación
-git clone https://github.com/HueteDevs/Proyecto_Adecco
-cd Proyecto_Adecco
-
-Crear entorno virtual
+bash
+# Linux / MacOS
 python3 -m venv .venv
 source .venv/bin/activate
 
+# Windows (PowerShell)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
 Instalar dependencias
+
+bash
 pip install -r requirements.txt
+▶️ Ejecución
+Servidor de desarrollo con Uvicorn
 
-10. Ejecución del Proyecto
-Servidor de desarrollo
+bash
 uvicorn app.main:app --reload
+API disponible en:
 
-Documentación API
+Swagger UI → http://127.0.0.1:8000/docs
 
-http://127.0.0.1:8000/docs
- (Swagger)
+ReDoc → http://127.0.0.1:8000/redoc
 
-http://127.0.0.1:8000/redoc
- (ReDoc)
+Ejecución alternativa
 
-Alternativa
+bash
 python run.py
+🗄️ Base de Datos
+Motor: SQLite (cartelera_cine.db)
 
-11. Endpoints por Módulo
-/peliculas   → CRUD completo
-/generos     → Catálogo de géneros
-/salas       → Gestión de salas
-/horarios    → Programación del cine
-/ventas      → Registro de ventas
-/socios      → Fidelización
-/auth        → Login y seguridad
+Ubicación: app/database/
 
-12. Futuras Mejoras
+Inicialización:
 
-Sistema completo de venta de entradas (frontend + backend)
+bash
+python -m app.cartelera_cine.db
+Esto crea las tablas y carga datos de ejemplo (películas, horarios, etc.).
 
-Panel de administración
+🌐 Endpoints principales
+/peliculas → CRUD de películas y filtros.
 
-UI cinematográfica
+/generos → Gestión de géneros.
 
-Estadísticas avanzadas
+/salas → Administración de salas.
 
-Recomendador con IA
+/horarios → Gestión de sesiones.
 
-Tickets con QR
+/ventas → Registro de ventas y recaudación.
 
-13. Licencia
+/socios → Alta y gestión de socios.
 
-MIT License.
+/auth → Registro, login y credenciales.
+
+🚀 Futuras Mejoras
+Sistema completo de compra de entradas (frontend + backend).
+
+Panel de administración web.
+
+Estadísticas avanzadas (ventas, ocupación, popularidad).
+
+Machine Learning para recomendaciones personalizadas.
+
+🤝 Contribuciones
+Este proyecto está en constante evolución. Cada aportación suma: pull requests, issues y sugerencias son bienvenidas.
+
+📜 Licencia
+Este proyecto se distribuye bajo licencia MIT.
