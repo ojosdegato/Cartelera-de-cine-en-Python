@@ -5,48 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ titulo }}</title>
     
-    <!-- Favicon para la pestaña -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>">
     
-    <!-- Carga de Bootstrap 5.3 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
-        xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     
-    <!-- Carga de FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
-        xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL3gUq73K2qI90U8v8lC6W9lJvGvE8j+N5i3F3aH8O/2p1x9h6O2A1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL3gUq73K2qI90U8v8lC6W9lJvGvE8j+N5i3F3aH8O/2p1x9h6O2A1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- CSS Personalizado para la temática "Azul y Blanco" -->
     <style>
-        /* 1. Fondo principal y texto: Limpio y Claro */
+        /* 0. Variables de Color del Proyecto (MIGRADO DE DISEÑOS PREVIOS) */
+        :root {
+            --color-primary-dark: #003366; /* Azul técnico oscuro */
+            --color-primary-accent: #0d6efd; /* Azul primario de Bootstrap */
+            --color-delete-intense: #FF3200; /* Rojo Específico Solicitado para ELIMINAR */
+            --color-delete-hover: #e52d00; 
+            
+            --color-cancel-orange: #FF7F32; /* Naranja Vívido Solicitado para CANCELAR */
+            --color-cancel-hover: #e56d2e;
+            
+            --color-danger-light: #fff0f0; /* Fondo sutil para la alerta */
+        }
+
+        /* 1. Estilos base */
         body {
-            background-color: #f8f9fa; /* Blanco roto / Gris claro */
-            color: #212529; /* Texto oscuro, altamente legible */
+            background-color: #f8f9fa; 
+            color: #212529;
             font-family: 'Inter', sans-serif;
         }
         
-        /* 2. Barra de Navegación: Fondo azul oscuro para contraste */
+        /* 2. Navbar y Footer (Usando variables) */
         .navbar {
-            background-color: #003366 !important; /* Azul técnico oscuro */
+            background-color: var(--color-primary-dark) !important;
         }
-        .navbar-brand i {
-            color: #4dc3ff; /* Azul brillante para el icono */
+        .footer-project { 
+            background-color: var(--color-primary-dark);
         }
+        /* NOTA IMPORTANTE: Se ha eliminado la regla .navbar-brand i del CSS para usar text-white en el HTML. */
 
-        /* 3. Tarjetas: Contenedores de información limpia */
+        /* 3. Tarjetas */
         .card {
-            background-color: #ffffff; /* Fondo blanco */
-            border: 1px solid #dee2e6; /* Borde gris claro */
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             transition: transform 0.2s, box-shadow 0.2s;
             border-radius: 10px; 
-            box-shadow: 0 4px 8px rgba(0, 51, 102, 0.05); /* Sombra azul tenue */
+            box-shadow: 0 4px 8px rgba(0, 51, 102, 0.05);
         }
         .card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 51, 102, 0.2); /* Sombra azul más intensa */
+            box-shadow: 0 10px 20px rgba(0, 51, 102, 0.2);
         }
         .card-title {
-            color: #003366 !important; /* Título en azul oscuro */
+            color: var(--color-primary-dark) !important;
         }
 
         /* 4. Acentos y Duración */
@@ -57,72 +67,105 @@
         }
         .duration {
             font-weight: bold;
-            color: #0d6efd; /* Azul primario de Bootstrap */
+            color: var(--color-primary-accent);
         }
         .text-primary-accent {
-            color: #0d6efd !important;
+            color: var(--color-primary-accent) !important;
         }
 
-        /* Estilo para los botones de entidad (Panel de Control) */
-        .btn-entity {
-            white-space: nowrap; /* Evita que los nombres largos se rompan */
-            min-width: 100px; /* Ajuste el ancho mínimo para Bootstrap */
+        /* 5. Estilos del MODAL (MIGRADO) */
+        .modal-title-blue {
+            color: var(--color-primary-dark) !important;
+            font-weight: 700;
         }
+        .text-delete-warning {
+            color: var(--color-delete-intense) !important;
+            font-weight: 700;
+        }
+
+        /* Botones de Acción: Ver/Editar (Ahora Sólidos) */
+        .btn-info { /* Para 'Ver' */
+             color: white !important; /* Asegurar contraste */
+        }
+
+        /* Botones de acción del modal (Rojo Intenso / Naranja Vívido) */
+        .btn-delete-intense {
+            background-color: var(--color-delete-intense);
+            border-color: var(--color-delete-intense);
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        .btn-delete-intense:hover {
+            background-color: var(--color-delete-hover); 
+            border-color: var(--color-delete-hover);
+        }
+        .btn-cancel-orange {
+            background-color: var(--color-cancel-orange);
+            border-color: var(--color-cancel-orange);
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .btn-cancel-orange:hover {
+            background-color: var(--color-cancel-hover); 
+            border-color: var(--color-cancel-hover);
+            color: white;
+        }
+        .p-3.border.rounded {
+             background-color: var(--color-danger-light) !important;
+             border-color: var(--color-delete-intense) !important;
+        }
+        .navbar-brand i {
+            /* Forzamos el color blanco para asegurar visibilidad sobre el fondo oscuro */
+            color: white !important;  
+            font-size: 1.2rem !important;
+}
     </style>
 </head>
 <body>
 
-    <!-- BARRA DE NAVEGACIÓN (HEADER) -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <i class="fas fa-ticket-alt me-2"></i> 
-                {{ titulo }}
+                    🎬 Gestión de Cartelera - Cine
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             
-            <!-- Panel de Entidades en la Barra de Navegación -->
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="d-flex flex-wrap ms-auto gap-2 py-2 py-lg-0">
                     
-                    <!-- Módulo 2: Peliculas (Javier Cachón) -->
                     <a href="/" class="btn btn-primary btn-entity">
                         <i class="fas fa-film me-1"></i> Películas
                     </a>
 
-                    <!-- Módulo 3: Salas (Reyes Delestal) -->
                     <a href="/salas/" class="btn btn-outline-light btn-entity">
                         <i class="fas fa-desktop me-1"></i> Salas
                     </a>
 
-                    <!-- Módulo 4: Horarios (Manuel Jesús) -->
                     <a href="/horarios/" class="btn btn-outline-light btn-entity">
                         <i class="fas fa-clock me-1"></i> Horarios
                     </a>
                     
-                    <!-- Módulo: Géneros (Kary Haro) -->
                     <a href="/generos/gestion" class="btn btn-outline-light btn-entity">
                         <i class="fas fa-tag me-1"></i> Géneros
                     </a>
                     
-                    <!-- Módulo 5: Ventas (Iñaki Huete) -->
                     <a href="/ventas/" class="btn btn-outline-light btn-entity">
                         <i class="fas fa-cash-register me-1"></i> Ventas
                     </a>
 
-                    <!-- Módulo 6: Socios (Javier Cachón) -->
                     <a href="/socios/" class="btn btn-outline-light btn-entity">
                         <i class="fas fa-user-friends me-1"></i> Socios
                     </a>
 
-                    <!-- Módulo 7: Login (Javier Cachón) -->
                     <a href="/login/" class="btn btn-outline-light btn-entity btn-login-extended">
                         <i class="fas fa-user me-1"></i> Login
                     </a>
 
-                    <!-- Acceso a API Docs -->
                     <a href="/docs" target="_blank" class="btn btn-outline-info btn-entity">
                         <i class="fas fa-code me-1"></i> API Docs
                     </a>
@@ -133,11 +176,8 @@
         </div>
     </nav>
 
-    <!-- CUERPO PRINCIPAL -->
     <main class="container my-5">
-        <h1 class="text-center mb-4 text-primary-accent"><i class="fas fa-laptop-code me-2"></i>Cartelera de cinema</h1>
-        
-        <!-- IMAGEN PRINCIPAL DE PORTADA -->
+               
         <div class="mb-5">
             <img src="{{ url_for('static', path='img/cinema.jpg') }}" 
             class="img-fluid rounded shadow-sm w-100"
@@ -145,11 +185,9 @@
             style="max-height: 380px; object-fit: cover;">
         </div>
         
-        <!-- Zona de Filtros -->
         <form method="GET" action="/" class="p-4 mb-5 border rounded-lg bg-white shadow-sm">
             <h5 class="mb-3 text-secondary"><i class="fas fa-filter me-2"></i> Filtros y Búsqueda</h5>
             
-            <!-- CAMPO DE BÚSQUEDA GLOBAL -->
             <div class="mb-4">
                 <label for="q" class="form-label small fw-bold">Búsqueda Rápida (Título, Director, Actores)</label>
                 <div class="input-group">
@@ -160,7 +198,6 @@
             </div>
 
             <div class="row g-3">
-                <!-- Filtro por Género -->
                 <div class="col-md-4">
                     <label for="genero_id" class="form-label small fw-bold">1. Género</label>
                     <select class="form-select form-select-sm" id="genero_id" name="genero_id">
@@ -174,7 +211,6 @@
                     </select>
                 </div>
 
-                <!-- Filtro por Clasificación (Disponibilidad) -->
                 <div class="col-md-4 d-flex align-items-end">
                     <div class="form-check form-switch pb-1">
                         <input class="form-check-input" type="checkbox" id="disponible" name="disponible" 
@@ -185,7 +221,6 @@
                     </div>
                 </div>
 
-                <!-- Filtro por Duración -->
                 <div class="col-md-4">
                     <label for="duracion_max" class="form-label small fw-bold">3. Duración (Máx. en min)</label>
                     <input type="number" class="form-control form-control-sm" id="duracion_max" name="duracion_max" min="0" 
@@ -200,7 +235,6 @@
         
         <p class="text-center text-muted mb-4">Mostrando {{ peliculas|length }} películas que cumplen los criterios de filtro.</p>
 
-        <!-- Botón de ACCIÓN GLOBAL: AÑADIR PELÍCULA -->
         <center>
             <div class="mb-4">
                 <a href="/peliculas/nueva" class="btn btn-lg btn-success shadow-sm">
@@ -209,17 +243,14 @@
             </div>
         </center>
         
-        <!-- GRID DE PELÍCULAS -->
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             
-            <!-- ITERACIÓN DE JINJA2 SOBRE LA LISTA DE PELÍCULAS -->
             {% for pelicula in peliculas %}
             
             <div class="col">
                 <div class="card h-100 shadow-sm">
                     <div class="card-body d-flex flex-column">
                         
-                        <!-- TÍTULO Y DISPONIBILIDAD -->
                         <h5 class="card-title border-bottom pb-2 mb-3">
                             <span class="badge bg-secondary me-2">{{ pelicula.id }}</span>
                             {{ pelicula.titulo }} 
@@ -228,9 +259,7 @@
                             {% endif %}
                         </h5>
                         
-                        <!-- DETALLES TÉCNICOS -->
                         <div class="mb-3">
-                            <!-- Muestra el nombre del Género, no solo el ID -->
                             <span class="genre-badge bg-primary text-white me-2">
                                 <i class="fas fa-bookmark"></i> 
                                 {{ pelicula.genero.nombre if pelicula.genero else 'Sin Género' }}
@@ -240,15 +269,13 @@
                             </span>
                         </div>
                         
-                        <!-- DESCRIPCIÓN -->
                         <p class="card-text text-secondary">{{ pelicula.descripcion|truncate(150) }}</p>
                         
-                        <div class="mt-auto pt-3 border-top border-light">
+                            <div class="mt-auto pt-3 border-top border-light">
                             <p class="mb-1 small text-muted">Director: {{ pelicula.director if pelicula.director else 'Desconocido' }}</p>
                             <p class="mb-1 small text-muted">Productora: {{ pelicula.productora if pelicula.productora else 'N/A' }}</p>
                             <p class="mb-1 small text-muted">Idioma: {{ pelicula.idioma if pelicula.idioma else 'N/A' }}</p>
                             
-                            <!-- AÑADIDO: LISTA DE ACTORES -->
                             {% if pelicula.actores and pelicula.actores|length > 0 %}
                             <p class="mb-1 small text-muted text-truncate" title="{{ pelicula.actores|join(', ') }}">
                                 Actores: {{ pelicula.actores|join(', ') }}
@@ -257,19 +284,18 @@
                             <p class="mb-1 small text-muted">Reparto: N/A</p>
                             {% endif %}
                             
-                            <!-- Botones de ACCIÓN CRUD (Ver, Editar, Eliminar) -->
                             <div class="d-flex gap-2 mt-3">
                                 
-                                <a href="/peliculas/{{ pelicula.id }}" class="btn btn-outline-info btn-sm flex-fill">
+                                <a href="/peliculas/{{ pelicula.id }}" class="btn btn-info btn-sm flex-fill text-white">
                                     <i class="fas fa-eye"></i> Ver
                                 </a>
-                                <a href="/peliculas/editar/{{ pelicula.id }}" class="btn btn-outline-warning btn-sm flex-fill">
+                                
+                                <a href="/peliculas/editar/{{ pelicula.id }}" class="btn btn-warning btn-sm flex-fill">
                                     <i class="fas fa-edit"></i> Editar
                                 </a>
                                 
-                                <!-- Botón que activa el Modal de Borrado -->
                                 <button type="button" 
-                                        class="btn btn-outline-danger btn-sm" 
+                                        class="btn btn-delete-intense btn-sm" 
                                         data-bs-toggle="modal" 
                                         data-bs-target="#deleteConfirmModal"
                                         data-pelicula-id="{{ pelicula.id }}"
@@ -284,11 +310,8 @@
             </div>
             
             {% endfor %}
-            <!-- FIN DE LA ITERACIÓN -->
-
-        </div>
+            </div>
         
-        <!-- MENSAJE DE SIN RESULTADOS (OPCIONAL) -->
         {% if not peliculas %}
         <div class="alert alert-info text-center mt-5">
             <i class="fas fa-exclamation-triangle me-2"></i> Lo sentimos, no hay películas disponibles en cartelera.
@@ -297,37 +320,47 @@
 
     </main>
 
-    <!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN (Única instancia) -->
-    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteConfirmModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i> Confirmación de Borrado
+            <div class="modal-content border-top border-5" style="border-color: var(--color-delete-intense) !important;">
+                
+                <div class="modal-header">
+                    <h5 class="modal-title modal-title-blue" id="confirmDeleteModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2 text-delete-warning"></i> Confirmación de Borrado Crítico
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+                
                 <div class="modal-body">
-                    <p>Estás a punto de eliminar la película:</p>
-                    <p class="fw-bold fs-5 text-secondary" id="modalPeliculaTitulo"></p>
-                    <p class="text-muted small">Esta acción es **permanente** y no se puede deshacer.</p>
+                    <p class="lead text-delete-warning">¿Estás absolutamente seguro de que deseas eliminar la película?</p>
+                    
+                    <div class="p-3 border rounded" style="background-color: var(--color-danger-light);">
+                        <p class="mb-1">
+                            <strong>Título:</strong> 
+                            <span class="text-secondary fw-bold" id="modalPeliculaTitulo"></span> 
+                            <span class="badge text-bg-secondary ms-2" id="modalPeliculaId"></span>
+                        </p>
+                    </div>
+                    
+                    <p class="text-muted small mt-3">Esta acción es **irreversible** y eliminará la película de la base de datos permanentemente.</p>
                 </div>
+                
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <!-- Formulario que se enviará al hacer clic en el botón rojo -->
-                    <form id="deleteForm" method="post" action="/peliculas/eliminar/0">
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash-alt me-1"></i> SÍ, ELIMINAR
+                    
+                    <button type="button" class="btn btn-cancel-orange" data-bs-dismiss="modal">
+                        <i class="fas fa-undo me-1"></i> No Eliminar (Cancelar)
+                    </button>
+                    
+                    <form id="deleteForm" action="/peliculas/eliminar/0" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-delete-intense">
+                            <i class="fas fa-trash-alt me-1"></i> Sí, Eliminar Permanentemente
                         </button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <!-- FIN DEL MODAL -->
-
-    <!-- FOOTER -->
-    <footer class="bg-dark text-white-50 py-3 mt-5">
+    <footer class="text-white-50 py-3 mt-5 footer-project">
         <div class="container text-center">
             <small>
                 Proyecto Cartelera de Cine &copy; 2025. Desarrollado con Python/FastAPI, Jinja2 y Bootstrap. 
@@ -337,31 +370,27 @@
         </div>
     </footer>
 
-    <!-- Carga de Bootstrap JS y Lógica Dinámica del Modal -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
-        xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Referencia al modal y al formulario dentro del modal
+            // Lógica para actualizar el Modal con los datos de la película desde los data-* del botón
             const deleteConfirmModal = document.getElementById('deleteConfirmModal');
             const deleteForm = document.getElementById('deleteForm');
             const modalPeliculaTitulo = document.getElementById('modalPeliculaTitulo');
+            const modalPeliculaId = document.getElementById('modalPeliculaId');
 
-            // Escucha cuando el modal está a punto de mostrarse
             deleteConfirmModal.addEventListener('show.bs.modal', function (event) {
-                // Botón que activó el modal
                 const button = event.relatedTarget; 
-                
-                // Extraer información de los atributos data-* del botón
                 const peliculaId = button.getAttribute('data-pelicula-id');
                 const peliculaTitulo = button.getAttribute('data-pelicula-titulo');
 
-                // 1. Actualizar el título del modal
+                // 1. Actualizar los detalles en el cuerpo del modal
                 modalPeliculaTitulo.textContent = peliculaTitulo;
+                modalPeliculaId.textContent = peliculaId;
 
                 // 2. Actualizar la acción del formulario
-                // La acción debe apuntar a: /peliculas/eliminar/{peliculaId}
                 deleteForm.action = `/peliculas/eliminar/${peliculaId}`;
             });
         });
