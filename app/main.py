@@ -50,15 +50,17 @@ app = FastAPI(**APP_METADATA)
 
 # Configuración sección static en main para imagenes, css etc
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
+
+# Directorio base donde está main.py (app/)
+BASE_DIR = Path(__file__).resolve().parent
+
+# Montar la carpeta estática DENTRO de app (app/static) para imagenes, css etc
 app.mount(
     "/static",
-    StaticFiles(directory="static"),  # carpeta static en la raíz del proyecto
+    StaticFiles(directory=STATIC_DIR),
     name="static",
 )
-
-
-
-
 
 # 3. MANEJO GLOBAL DE ERRORES HTTP (404, etc.)
 @app.exception_handler(StarletteHTTPException)

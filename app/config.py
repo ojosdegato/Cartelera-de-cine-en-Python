@@ -10,6 +10,7 @@ import os
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 
+
 # Obtener el directorio base para referencias de ruta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,7 +28,10 @@ SQL_PATH = BASE_DIR / "database" / "db.sql"
 SCHEMA_FILE_PATH = str(SQL_PATH)
 SEED_FILE_PATH   = str(SQL_PATH)
 
-STATIC_DIR = "static" # Directorio para archivos estáticos
+# Directorio para archivos estáticos (CSS, JS, imágenes…)
+# Directorio base donde está la carpeta app
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static" 
 
 
 # 2. CONFIGURACIÓN DE JINJA2
