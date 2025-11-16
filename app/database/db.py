@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 # 1. Rutas base
 BASE_DIR = Path(__file__).resolve().parent
 
-DB_PATH = BASE_DIR / "cartelera_cine.db"   # /app/database/cartelera_cine.db
+DB_PATH = BASE_DIR / "db.db"   # /app/database/db.db
 SQL_PATH = BASE_DIR / "db.sql"             # /app/database/db.sql
 
 DATABASE_URL = f"sqlite:///{DB_PATH}"

@@ -7,7 +7,7 @@ Centraliza textos, constantes y nombres de parámetros de filtro.
 from typing import Final
 
 # Título para la página principal de la cartelera
-HOME_TITLE: Final[str] = "Gestión de Cartelera - CRUD"
+HOME_TITLE: Final[str] = "Gestión de Cartelera - Cine"
 
 # Nombres de parámetros en la query string (coinciden con los 'name' del formulario HTML)
 PARAM_Q: Final[str] = "q"

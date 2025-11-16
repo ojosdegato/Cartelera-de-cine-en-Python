@@ -19,9 +19,11 @@ from sqlalchemy.orm import Session
 
 from starlette.responses import HTMLResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from app.config import APP_TITLE
 
 # --- Configuración global y utilidades de infraestructura ---
 from app.config import (
+    APP_TITLE,
     templates,
     APP_METADATA,
     DB_FILE_PATH,
@@ -75,7 +77,8 @@ async def custom_http_exception_handler(
         try:
             return templates.TemplateResponse(
                 "404.html",
-                {"request": request},
+                {"request": request,
+                "titulo": APP_TITLE},
                 status_code=404,
             )
         except Exception:

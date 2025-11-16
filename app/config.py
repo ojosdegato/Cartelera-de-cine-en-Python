@@ -16,7 +16,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 1. RUTAS DE ARCHIVOS DE INFRAESTRUCTURA (Movidas desde main.py)
 #DB_FILE_PATH = "./database/cartelera_cine.db"
-DB_FILE_PATH = "sqlite:///database/cartelera_cine.db"
+DB_FILE_PATH = "sqlite:///database/db.db"
 
 #SCHEMA_FILE_PATH = "database/db.sql"
 #SEED_FILE_PATH   = "database/db.sql"
@@ -41,8 +41,13 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "..", "templates"))
 
 
 # 3. METADATOS DE LA APLICACIÓN (Movidos desde la instancia FastAPI en main.py)
+
+APP_TITLE = "Gestión de Cartelera - Cine"
+
+
+
 APP_METADATA = {
     "title": "API Cartelera de Cine - javiercachon.com",
-    "description": "Proyecto de Cartelera de Cine desarrollado con Python/FastAPI, SQLAlchemy y Jinja2. Un ejemplo de Software Libre y Excelencia Educativa.",
+    "description": "Proyecto de Cartelera de Cine desarrollado con Python/FastAPI, SQLAlchemy y Jinja2. Compromiso con el Software Libre, código abierto y GNU/Linux y la Excelencia Educativa..",
     "version": "1.0.0"
 }
