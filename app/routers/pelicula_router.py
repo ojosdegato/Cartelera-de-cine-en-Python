@@ -1,13 +1,16 @@
 # app/routers/pelicula_router.py
 # Módulo de gestión de películas, incluyendo la lógica de la API REST y las vistas HTML (Jinja2).
 
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, Query, UploadFile, File
 from fastapi.requests import Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response, StreamingResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import csv
+import json
+import io
 
-# --- Importaciones Específicas del Proyecto (Rompiendo la Circularidad) ---
+# --- Importaciones Específicas del Proyecto (SOLO GENERALES/SCHEMAS/MODELOS) ---
 from app.database.db import get_db
 
 from app.config import templates  # Motor Jinja2, importado de un archivo de configuración
@@ -17,7 +20,9 @@ from app.schemas.pelicula import (
     PeliculaReadWithGenero,
     PeliculaUpdate,
 )
-from app.services import pelicula_service, genero_service
+# Solo se mantiene la importación de genero_service, que se usa en rutas que no
+# llaman a pelicula_service (para evitar dependencia mutua)
+from app.services import genero_service 
 from app.models.pelicula import PeliculaORM  # Necesario para la firma de tipos en el servicio
 
 # Creación del Router (Todas las rutas inician con /peliculas)
@@ -75,6 +80,9 @@ def create_pelicula_from_form(
     """
     [POST] Procesa los datos del formulario, valida, crea la nueva película y redirige.
     """
+    # Importación LOCAL: Asegura que el servicio se cargue solo cuando se llama a esta función
+    from app.services import pelicula_service
+
     try:
         if not genero_service.get_genero_by_id(db, genero_id):
             raise HTTPException(status_code=400, detail="Género ID no válido.")
@@ -117,6 +125,9 @@ def read_pelicula_by_id_api(pelicula_id: int, db: Session = Depends(get_db)):
     """
     [GET] Obtiene una película por ID, incluyendo datos de género (API JSON).
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id)
     if pelicula is None:
         raise HTTPException(status_code=404, detail="Película no encontrada")
@@ -131,6 +142,9 @@ def view_pelicula_detalle(
     """
     [GET] Muestra el detalle de una película específica por su ID.
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id)
     if not pelicula:
         raise HTTPException(status_code=404, detail="Película no encontrada")
@@ -149,6 +163,9 @@ def view_editar_pelicula(
     """
     [GET] Muestra el formulario con los datos pre-rellenados de una película existente.
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     try:
         # 1. Obtener la película y verificar su existencia
         pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id)
@@ -203,6 +220,9 @@ def update_pelicula_from_form(
     """
     [POST] Procesa la actualización de los datos de una película existente.
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     try:
         if not genero_service.get_genero_by_id(db, genero_id):
             raise HTTPException(status_code=400, detail="Género ID no válido.")
@@ -256,6 +276,9 @@ def execute_eliminar_pelicula(pelicula_id: int, db: Session = Depends(get_db)):
     """
     [POST] Ejecuta el servicio de eliminación definitiva de la película.
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     try:
         success = pelicula_service.delete_pelicula(db, pelicula_id)
         if not success:
@@ -288,6 +311,9 @@ def create_pelicula_api(
     """
     [POST] Añade una nueva película a la cartelera (JSON Payload).
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     return pelicula_service.add_pelicula(db=db, pelicula=pelicula)
 
 
@@ -296,6 +322,9 @@ def read_peliculas_disponibles_api(db: Session = Depends(get_db)):
     """
     [GET] Obtiene una lista de todas las películas actualmente disponibles (JSON).
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     return pelicula_service.get_peliculas_disponibles(db=db)
 
 
@@ -308,6 +337,9 @@ def update_pelicula_endpoint_api(
     """
     [PUT] Actualiza los datos de una película existente por su ID (JSON Payload).
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     db_pelicula = pelicula_service.update_pelicula(db, pelicula_id, pelicula_update)
     if db_pelicula is None:
         raise HTTPException(status_code=404, detail="Película no encontrada")
@@ -321,6 +353,212 @@ def delete_pelicula_endpoint_api(
     """
     [DELETE] Elimina una película de la base de datos por su ID.
     """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
     success = pelicula_service.delete_pelicula(db, pelicula_id)
     if not success:
         raise HTTPException(status_code=404, detail="Película no encontrada")
+
+        
+# ==============================================================================
+# 3. RUTAS DE EXPORTACIÓN (CSV / JSON) - Funcionalidad Extra
+# ==============================================================================
+
+@router.get("/export/csv", tags=["Exportación"])
+def export_peliculas_csv_endpoint(
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None, description="Búsqueda por título, director, etc."),
+    genero_id: Optional[int] = Query(None, description="Filtrar por ID de género."),
+    duracion_max: Optional[int] = Query(None, description="Duración máxima en minutos."),
+    disponible: Optional[bool] = Query(None, description="Solo películas disponibles."),
+):
+    """
+    [GET] **Exportar Catálogo** - Devuelve la lista de películas filtradas en formato **CSV**.
+    
+    Utiliza Response para asegurar el Content-Disposition y evitar fallos de descarga.
+    """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
+    csv_data = pelicula_service.export_peliculas_to_csv(
+        db=db,
+        query=q,
+        genero_id=genero_id,
+        duracion_max=duracion_max,
+        disponible=disponible,
+    )
+    
+    filename = "catalogo-peliculas.csv" 
+    
+    # Retorna el contenido del buffer de memoria como una respuesta HTTP forzando la descarga
+    return Response(
+        content=csv_data.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@router.get("/export/json", tags=["Exportación"])
+def export_peliculas_json_endpoint(
+    db: Session = Depends(get_db),
+    q: Optional[str] = Query(None, description="Búsqueda por título, director, etc."),
+    genero_id: Optional[int] = Query(None, description="Filtrar por ID de género."),
+    duracion_max: Optional[int] = Query(None, description="Duración máxima en minutos."),
+    disponible: Optional[bool] = Query(None, description="Solo películas disponibles."),
+):
+    """
+    [GET] **Exportar Catálogo** - Devuelve la lista de películas filtradas en formato **JSON**.
+    """
+    # Importación LOCAL
+    from app.services import pelicula_service
+
+    json_str = pelicula_service.export_peliculas_to_json(
+        db=db,
+        query=q,
+        genero_id=genero_id,
+        duracion_max=duracion_max,
+        disponible=disponible,
+    )
+    
+    filename = "catalogo-peliculas.json" 
+    
+    return Response(
+        content=json_str,
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}, 
+    )
+
+# ==============================================================================
+# 4. RUTAS DE IMPORTACIÓN (CSV / JSON) - Funcionalidad Extra
+# ==============================================================================
+
+@router.post("/import/csv", tags=["Importación"])
+async def import_peliculas_csv_endpoint(
+    request: Request,
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    [POST] **Importar Catálogo** - Recibe un archivo CSV y procesa las filas para insertar/actualizar películas.
+    """
+    # Importación LOCAL
+    from app.services import pelicula_service
+    from app.services import genero_service 
+
+    if file.content_type not in ["text/csv", "application/vnd.ms-excel"]:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Tipo de archivo no soportado: {file.content_type}. Se espera CSV."
+        )
+        
+    try:
+        # Leer el contenido del archivo subido en memoria
+        content = await file.read()
+        # Decodificar y manejar como texto CSV
+        csv_text = content.decode('utf-8')
+        csv_file = io.StringIO(csv_text)
+        
+        # Usar DictReader para leer el CSV como diccionarios (nombre de columna como clave)
+        reader = csv.DictReader(csv_file)
+        data_to_import = list(reader)
+        
+        # Llamar al servicio para importar los datos
+        success_count, errors = pelicula_service.import_peliculas_from_data(db, data_to_import)
+        
+        if errors:
+            # Si hay errores, mostramos la página de inicio con un mensaje de error y el detalle
+            error_message = f"Se importaron {success_count} registros. Hubo errores en {len(errors)} filas."
+            return templates.TemplateResponse(
+                "peliculas/index.html", 
+                {
+                    "request": request, 
+                    "titulo": "Error en Importación",
+                    "error_importacion": error_message,
+                    "detalle_errores": errors,
+                    "peliculas": pelicula_service.get_all_peliculas(db), # Recargar lista completa
+                    "generos": genero_service.get_all_generos(db),
+                    "filtros_activos": {}, # Sin filtros
+                }
+            )
+        
+        # Redireccionar con éxito
+        return RedirectResponse(
+            url="/", 
+            status_code=status.HTTP_303_SEE_OTHER, 
+            headers={"X-Import-Status": f"Success: {success_count} records imported."}
+        )
+
+    except Exception as e:
+        print(f"Error crítico durante la importación CSV: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error interno al procesar el archivo CSV: {e}"
+        )
+
+@router.post("/import/json", tags=["Importación"])
+async def import_peliculas_json_endpoint(
+    request: Request,
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
+    """
+    [POST] **Importar Catálogo** - Recibe un archivo JSON y procesa los datos para insertar/actualizar películas.
+    """
+    # Importación LOCAL
+    from app.services import pelicula_service
+    from app.services import genero_service 
+
+    if file.content_type != "application/json":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Tipo de archivo no soportado: {file.content_type}. Se espera JSON."
+        )
+        
+    try:
+        # Leer el contenido del archivo subido en memoria
+        content = await file.read()
+        
+        # Decodificar y cargar como JSON
+        data_to_import = json.loads(content.decode('utf-8'))
+        
+        if not isinstance(data_to_import, list):
+            raise ValueError("El archivo JSON debe ser una lista de objetos película.")
+        
+        # Llamar al servicio para importar los datos
+        success_count, errors = pelicula_service.import_peliculas_from_data(db, data_to_import)
+        
+        if errors:
+             # Si hay errores, mostramos la página de inicio con un mensaje de error y el detalle
+            error_message = f"Se importaron {success_count} registros. Hubo errores en {len(errors)} filas."
+            return templates.TemplateResponse(
+                "peliculas/index.html", 
+                {
+                    "request": request, 
+                    "titulo": "Error en Importación",
+                    "error_importacion": error_message,
+                    "detalle_errores": errors,
+                    "peliculas": pelicula_service.get_all_peliculas(db), # Recargar lista completa
+                    "generos": genero_service.get_all_generos(db),
+                    "filtros_activos": {}, # Sin filtros
+                }
+            )
+        
+        # Redireccionar con éxito
+        return RedirectResponse(
+            url="/", 
+            status_code=status.HTTP_303_SEE_OTHER, 
+            headers={"X-Import-Status": f"Success: {success_count} records imported."}
+        )
+
+    except (json.JSONDecodeError, ValueError) as e:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Error de formato JSON: {e}"
+        )
+    except Exception as e:
+        print(f"Error crítico durante la importación JSON: {e}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error interno al procesar el archivo JSON: {e}"
+        )

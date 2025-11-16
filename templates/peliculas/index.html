@@ -9,7 +9,7 @@
     
     <link href="{{ url_for('static', path='/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" 
-        integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL3gUq73K2qI90U8v8lC6W9lJvGvE8j+N5i3F3aH8O/2p1x9h6O2A1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJzL3gUq73K2qI90U8v8lC6W9lJvGvE8j+N5i3F3aH8O/2p1x9h6O2A1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     <link href="{{ url_for('static', path='/css/proyecto.css') }}" rel="stylesheet">
 
@@ -20,7 +20,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <i class="fas fa-ticket-alt me-2"></i> 
-                    🎬 Gestión de Cartelera - Cine
+                    Gestión de Cartelera - Cine
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -57,9 +57,48 @@
                         <i class="fas fa-user me-1"></i> Login
                     </a>
 
-                    <a href="/docs" target="_blank" class="btn btn-outline-info btn-entity">
-                        <i class="fas fa-code me-1"></i> API Docs
-                    </a>
+                    <!-- INICIO: Botón de Exportación/Importación (CORREGIDO EL ESTILO) -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-light dropdown-toggle btn-entity" 
+                                type="button" 
+                                id="dataDropdown" 
+                                data-bs-toggle="dropdown" 
+                                aria-expanded="false"
+                                title="Opciones de Importación y Exportación de Datos">
+                            <i class="fas fa-database me-1"></i> CSV/JSON
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dataDropdown">
+                            
+                            <li><h6 class="dropdown-header">Exportar Catálogo (Filtros Activos)</h6></li>
+                            <li>
+                                <a class="dropdown-item" href="/peliculas/export/csv">
+                                    <i class="fas fa-file-csv me-2 text-success"></i> Descargar CSV
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/peliculas/export/json">
+                                    <i class="fas fa-file-code me-2 text-primary"></i> Descargar JSON
+                                </a>
+                            </li>
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <li><h6 class="dropdown-header">Importar Datos (Añadir/Actualizar)</h6></li>
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#importModal">
+                                    <i class="fas fa-upload me-2 text-warning"></i> Subir Archivo CSV/JSON
+                                </button>
+                            </li>
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="/docs" target="_blank">
+                                    <i class="fas fa-code me-2 text-info"></i> API Docs (Swagger)
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- FIN: Botón de Exportación/Importación -->
 
                 </div>
             </div>
@@ -68,6 +107,39 @@
     </nav>
 
     <main class="container my-5">
+        
+        <!-- INICIO: Bloque de Errores de Importación (PARA MOSTRAR EL RESULTADO DE LA SUBIDA) -->
+        {% if error_importacion %}
+        <div class="alert alert-danger shadow-sm mb-5" role="alert">
+            <h4 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i> Error en la Importación</h4>
+            <p>{{ error_importacion }}</p>
+            {% if detalle_errores %}
+            <hr>
+            <p class="mb-0 small">Detalles de las filas con errores:</p>
+            <div class="table-responsive mt-2" style="max-height: 200px; overflow-y: scroll;">
+                <table class="table table-sm table-bordered table-hover bg-white small">
+                    <thead>
+                        <tr>
+                            <th>Fila</th>
+                            <th>Error</th>
+                            <th>Datos Subidos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for error in detalle_errores %}
+                        <tr>
+                            <td>{{ error.row }}</td>
+                            <td class="text-danger">{{ error.error|truncate(100) }}</td>
+                            <td><pre class="mb-0">{{ error.data|tojson }}</pre></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        <!-- FIN: Bloque de Errores de Importación -->
                
         <div class="mb-5">
             <img src="{{ url_for('static', path='/img/cinema.jpg') }}" 
@@ -81,7 +153,7 @@
             <div class="mb-4">
                 <label for="q" class="form-label small fw-bold">Búsqueda Rápida (Título, Director, Actores)</label>
                 <div class="input-group">
-                    <span class="input-group-text">🔍<i class="fas fa-search"></i></span>
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="search" class="form-control" id="q" name="q" placeholder="Buscar por palabra clave..."
                            value="{{ filtros_activos.q if filtros_activos.q else '' }}">
                 </div>
@@ -210,6 +282,40 @@
 
     </main>
 
+    <!-- Modal de Importación (Contenedor para subir archivos) -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="importModalLabel"><i class="fas fa-upload me-2"></i> Importar Catálogo de Películas</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Suba un archivo CSV o JSON para añadir o actualizar el catálogo de películas. Los registros existentes con el mismo **título** serán actualizados.</p>
+                    
+                    <!-- Formulario de Subida: Su acción se define mediante JS basado en la extensión del archivo -->
+                    <form id="importForm" action="" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="importFile" class="form-label fw-bold">Seleccionar Archivo (CSV / JSON)</label>
+                            <input class="form-control" type="file" id="importFile" name="file" accept=".csv, application/json">
+                        </div>
+                    </form>
+                    
+                    <div class="alert alert-info small">
+                        **Formato Esperado:** El archivo debe tener las columnas: `titulo`, `duracion`, `genero_nombre`, `disponible`, etc. Se recomienda **exportar un archivo primero** para ver el formato correcto.
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="submitImport" class="btn btn-warning"><i class="fas fa-upload me-1"></i> Iniciar Importación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Fin Modal de Importación -->
+    
+    <!-- Modal de Confirmación de Eliminación (Existente) -->
     <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-top border-5" style="border-color: var(--color-delete-intense) !important;">
@@ -262,6 +368,71 @@
 
     <script src="{{ url_for('static', path='/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', path='/js/proyecto.js') }}"></script>
+    
+    <!-- Script específico para manejar la subida de archivos y el formulario de importación -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // El script para el modal de borrado (proyecto.js) ya existe y debe funcionar.
+            
+            const importFile = document.getElementById('importFile');
+            const submitImportButton = document.getElementById('submitImport');
+            const importForm = document.getElementById('importForm');
+            
+            // Función auxiliar para mostrar alertas temporales en la UI (en lugar de alert())
+            function showTemporaryAlert(message) {
+                 const alertContainer = document.querySelector('main .container');
+                 const alertDiv = document.createElement('div');
+                 alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-3';
+                 alertDiv.role = 'alert';
+                 alertDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle me-2"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                 `;
+                 if (alertContainer) {
+                     // Insertamos antes del primer hijo (para que aparezca visiblemente arriba)
+                     alertContainer.insertBefore(alertDiv, alertContainer.firstChild); 
+                 } else {
+                     console.error("ALERTA (UI): " + message);
+                 }
+            }
+            
+            if (importFile && submitImportButton && importForm) {
+                
+                submitImportButton.addEventListener('click', function() {
+                    const selectedFile = importFile.files[0];
+                    if (!selectedFile) {
+                         showTemporaryAlert("Por favor, seleccione un archivo CSV o JSON para importar.");
+                         return;
+                    }
+                    
+                    // Determinar la ruta de la API basada en la extensión del archivo
+                    // Usamos el nombre y content_type para mayor robustez
+                    let actionUrl = '';
+                    const fileName = selectedFile.name.toLowerCase();
+
+                    if (fileName.endsWith('.csv') || selectedFile.type === 'text/csv' || selectedFile.type === 'application/vnd.ms-excel') {
+                        actionUrl = '/peliculas/import/csv';
+                    } else if (fileName.endsWith('.json') || selectedFile.type === 'application/json') {
+                        actionUrl = '/peliculas/import/json';
+                    } else {
+                        showTemporaryAlert("Formato de archivo no reconocido. Debe ser CSV o JSON. Tipo detectado: " + selectedFile.type);
+                        return;
+                    }
+                    
+                    // 1. Asignar la acción y el método POST
+                    importForm.action = actionUrl;
+                    importForm.method = 'POST';
+                    
+                    // 2. Desactivar el botón para evitar doble envío y dar feedback
+                    submitImportButton.disabled = true;
+                    submitImportButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...';
+                    
+                    // 3. Enviar el formulario
+                    importForm.submit();
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>

@@ -3,10 +3,220 @@
 
 from sqlalchemy.orm import Session, joinedload
 from app.models.pelicula import PeliculaORM
-from app.schemas.pelicula import PeliculaCreate, PeliculaUpdate
-from typing import List, Optional
+from app.models.genero import GeneroORM # <-- IMPORTADO: Para buscar género por nombre
+from app.schemas.pelicula import PeliculaCreate, PeliculaUpdate, PeliculaReadWithGenero, PeliculaImport
+from typing import List, Optional, Dict, Any, Tuple # <-- CORREGIDO: Se añadió Dict y Any
 from sqlalchemy import or_, func, cast, String
 
+# --- Importaciones para Exportación (CSV/JSON) ---
+import io
+import csv
+import json
+from pydantic import ValidationError # Para manejar errores de validación en la importación
+
+
+
+ 
+
+# ==============================================================================
+# I. FUNCIONES DE EXPORTACIÓN (Servicios Extra)
+# ==============================================================================
+
+def _format_pelicula_for_csv_export(pelicula: PeliculaORM) -> Dict[str, Any]:
+    """
+    Formatea un objeto PeliculaORM a un diccionario aplanado para el exportación CSV.
+    
+    CORRECCIÓN: Se aplica programación defensiva para asegurar que los campos opcionales
+    (que pueden ser None) siempre sean serializados como cadenas ("").
+    """
+    data = {
+        "id": pelicula.id,
+        "titulo": pelicula.titulo,
+        # Navegación eager-loaded
+        "genero_nombre": pelicula.genero.nombre if pelicula.genero else "N/A",
+        "duracion": pelicula.duracion,
+        "disponible": "Sí" if pelicula.disponible else "No",
+        
+        # <-- INICIO FIX REGRESIÓN CSV -->
+        "director": str(pelicula.director) if pelicula.director is not None else "",
+        "descripcion": str(pelicula.descripcion) if pelicula.descripcion is not None else "",
+        "trailer": str(pelicula.trailer) if pelicula.trailer is not None else "",
+        "productora": str(pelicula.productora) if pelicula.productora is not None else "",
+        "idioma": str(pelicula.idioma) if pelicula.idioma is not None else "",
+        # <-- FIN FIX REGRESIÓN CSV -->
+        
+        "vose": "Sí" if pelicula.vose else "No",
+        # Aplanar la lista de actores
+        "actores": ", ".join(pelicula.actores) if pelicula.actores else "",
+    }
+    return data
+
+def export_peliculas_to_csv(
+    db: Session,
+    query: Optional[str] = None,
+    genero_id: Optional[int] = None,
+    duracion_max: Optional[int] = None,
+    disponible: Optional[bool] = None,
+) -> io.StringIO:
+    """
+    Exporta el catálogo de películas filtradas a un formato CSV.
+    Retorna un objeto StringIO (buffer en memoria) que contiene el CSV.
+    """
+    # 1. Obtener datos (la función get_peliculas_filtradas ya hace eager load del género)
+    peliculas_orm = get_peliculas_filtradas(
+        db=db,
+        query=query,
+        genero_id=genero_id,
+        duracion_max=duracion_max,
+        disponible=disponible,
+    )
+    
+    # 2. Formatear datos y preparar cabeceras
+    data = [_format_pelicula_for_csv_export(p) for p in peliculas_orm]
+    
+    # 3. Crear buffer y escribir CSV
+    output = io.StringIO()
+    # Definir el orden de las columnas del CSV
+    fieldnames = [
+        "id", "titulo", "genero_nombre", "duracion", "disponible", "director", 
+        "productora", "idioma", "vose", "actores", "descripcion", "trailer"
+    ]
+    
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+    
+    writer.writeheader()
+    writer.writerows(data)
+    
+    output.seek(0)
+    return output
+
+def export_peliculas_to_json(
+    db: Session,
+    query: Optional[str] = None,
+    genero_id: Optional[int] = None,
+    duracion_max: Optional[int] = None,
+    disponible: Optional[bool] = None,
+) -> str:
+    """
+    Exporta el catálogo de películas filtradas a un formato JSON.
+    Retorna una cadena JSON serializada.
+    """
+    # 1. Obtener datos (se asegura el eager load del género)
+    peliculas_orm = get_peliculas_filtradas(
+        db=db,
+        query=query,
+        genero_id=genero_id,
+        duracion_max=duracion_max,
+        disponible=disponible,
+    )
+    
+    # 2. Convertir los objetos ORM a schemas Pydantic (con el género anidado)
+    # Nota de Seguridad: Usamos model_validate para la conversión de datos.
+    peliculas_schema = [PeliculaReadWithGenero.model_validate(p) for p in peliculas_orm]
+    
+    # 3. Serializar la lista de objetos Pydantic a JSON
+    return json.dumps([p.model_dump() for p in peliculas_schema], indent=4, ensure_ascii=False)
+
+# ==============================================================================
+# II. FUNCIONES DE IMPORTACIÓN (NUEVO CÓDIGO)
+# ==============================================================================
+
+def _get_or_create_genero_id(db: Session, genero_nombre: str) -> Optional[int]:
+    """
+    Busca el ID de un género por su nombre. Si no existe, lo crea y retorna su ID.
+    
+    Nota: Se utiliza 'nombre' para la importación ya que es más legible que el 'id'.
+    """
+    genero_nombre = genero_nombre.strip()
+    db_genero = db.query(GeneroORM).filter(
+        func.lower(GeneroORM.nombre) == func.lower(genero_nombre)
+    ).first()
+    
+    if db_genero:
+        return db_genero.id
+    
+    # Si no existe, lo creamos para evitar fallos de FK
+    print(f"INFO: Creando nuevo género '{genero_nombre}' durante la importación.")
+    new_genero = GeneroORM(nombre=genero_nombre)
+    db.add(new_genero)
+    db.flush() # Forzar la inserción para obtener el ID
+    return new_genero.id
+
+def import_peliculas_from_data(
+    db: Session, data: List[Dict[str, Any]]
+) -> Tuple[int, List[Dict[str, Any]]]:
+    """
+    Procesa una lista de diccionarios (de JSON o CSV) e inserta/actualiza las películas.
+
+    Retorna una tupla: (conteo de inserciones/actualizaciones exitosas, lista de errores).
+    """
+    success_count = 0
+    errors: List[Dict[str, Any]] = []
+    
+    for row_index, row_data in enumerate(data):
+        try:
+            # 1. Validar y normalizar con el esquema Pydantic
+            pelicula_data = PeliculaImport(**row_data)
+            
+            # 2. Obtener/Crear el ID del género
+            genero_id = _get_or_create_genero_id(db, pelicula_data.genero_nombre)
+            
+            if not genero_id:
+                 raise ValueError(f"No se pudo resolver el género: {pelicula_data.genero_nombre}")
+
+            # 3. Construir el objeto PeliculaCreate para la inserción
+            pelicula_create = PeliculaCreate(
+                titulo=pelicula_data.titulo,
+                duracion=pelicula_data.duracion,
+                genero_id=genero_id,
+                disponible=pelicula_data.disponible,
+                director=pelicula_data.director,
+                descripcion=pelicula_data.descripcion,
+                trailer=pelicula_data.trailer,
+                productora=pelicula_data.productora,
+                idioma=pelicula_data.idioma,
+                vose=pelicula_data.vose,
+                actores=pelicula_data.actores,
+            )
+            
+            # 4. Comprobar si existe (simplemente por título para simplificar)
+            # En un sistema real, se usaría un ID externo o un slug para evitar duplicados.
+            db_pelicula = db.query(PeliculaORM).filter(
+                func.lower(PeliculaORM.titulo) == func.lower(pelicula_data.titulo)
+            ).first()
+            
+            if db_pelicula:
+                # Actualizar (Reutilizamos la lógica de update_pelicula)
+                pelicula_update = PeliculaUpdate(**pelicula_create.model_dump())
+                update_pelicula(db, db_pelicula.id, pelicula_update)
+            else:
+                # Insertar
+                add_pelicula(db, pelicula_create)
+            
+            success_count += 1
+
+        except ValidationError as e:
+            errors.append({
+                "row": row_index + 1, 
+                "data": row_data, 
+                "error": f"Error de Validación de Pydantic: {e.errors()}"
+            })
+            db.rollback() # Deshacer si hubo un flush previo
+        except Exception as e:
+            errors.append({
+                "row": row_index + 1, 
+                "data": row_data, 
+                "error": f"Error de Base de Datos: {e}"
+            })
+            db.rollback()
+            
+    db.commit() # Commit final de todas las operaciones exitosas
+    return success_count, errors
+
+
+# ==============================================================================
+# II. FUNCIONES CRUD/BÚSQUEDA (Resto del Código)
+# ==============================================================================
 
 # --- Servicio 1: Añadir película ---
 def add_pelicula(db: Session, pelicula: PeliculaCreate) -> PeliculaORM:
@@ -86,7 +296,7 @@ def get_pelicula_detalle(db: Session, pelicula_id: int) -> Optional[PeliculaORM]
     ).filter(PeliculaORM.id == pelicula_id).first()
 
 
-# Nueva función para aplicar los filtros dinámicos en buscador y genero
+# Función para aplicar los filtros dinámicos en buscador y genero
 def get_peliculas_filtradas(
     db: Session,
     query: Optional[str] = None,
@@ -95,18 +305,7 @@ def get_peliculas_filtradas(
     disponible: Optional[bool] = None,
 ) -> List[PeliculaORM]:
     """
-    Obtiene películas aplicando de forma combinada:
-
-    - Búsqueda de texto global (query) sobre:
-        * título
-        * director
-        * descripción
-        * actores (columna JSON, convertida a texto)
-    - Filtro por género (genero_id)
-    - Filtro por duración máxima (duracion_max)
-    - Filtro por disponibilidad (disponible=True)
-
-    Todos los filtros se combinan con AND.
+    Obtiene películas aplicando de forma combinada.
     """
     # 1. Consulta base con eager loading del género
     query_stmt = db.query(PeliculaORM).options(
