@@ -3,6 +3,8 @@
 
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
+ 
+
 
 # --- Esquema Base ---
 # Campos que definen un género

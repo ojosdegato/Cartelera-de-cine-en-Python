@@ -19,14 +19,13 @@ class PeliculaORM(Base):
     titulo: Mapped[str] = mapped_column(String(255), nullable=False)
     
     # --- Relación ManyToOne con Genero ---
-    # Esto cumple con "genero_id: int" de how_to_do.md
+    # Esto cumple con "genero_id: int"
     genero_id: Mapped[int] = mapped_column(ForeignKey("generos.id"), nullable=False)
     
     duracion: Mapped[int] = mapped_column(Integer, nullable=False) # int, no float
     disponible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # --- Columnas Opcionales (nullable=True) ---
-    # Usamos la sintaxis moderna de Python | None para claridad
+    # --- Columnas (nullable=True) ---
     director: Mapped[str | None] = mapped_column(String(100), nullable=True)
     descripcion: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     trailer: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -44,7 +43,7 @@ class PeliculaORM(Base):
     # a su género con `pelicula.genero`
     genero: Mapped["GeneroORM"] = relationship(back_populates="peliculas")
     
-    # (Aquí irían otras relaciones, ej: con Horario)
+    # (Aquí irían otras relaciones)
     
     
     

@@ -3,23 +3,20 @@
 
 from sqlalchemy.orm import Session, joinedload
 from app.models.pelicula import PeliculaORM
-from app.models.genero import GeneroORM # <-- IMPORTADO: Para buscar género por nombre
+from app.models.genero import GeneroORM 
 from app.schemas.pelicula import PeliculaCreate, PeliculaUpdate, PeliculaReadWithGenero, PeliculaImport
-from typing import List, Optional, Dict, Any, Tuple # <-- CORREGIDO: Se añadió Dict y Any
+from typing import List, Optional, Dict, Any, Tuple 
 from sqlalchemy import or_, func, cast, String
 
 # --- Importaciones para Exportación (CSV/JSON) ---
 import io
 import csv
 import json
-from pydantic import ValidationError # Para manejar errores de validación en la importación
+from pydantic import ValidationError 
 
-
-
- 
 
 # ==============================================================================
-# I. FUNCIONES DE EXPORTACIÓN (Servicios Extra)
+# I. FUNCIONES DE EXPORTACIÓN 
 # ==============================================================================
 
 def _format_pelicula_for_csv_export(pelicula: PeliculaORM) -> Dict[str, Any]:
@@ -118,7 +115,7 @@ def export_peliculas_to_json(
     return json.dumps([p.model_dump() for p in peliculas_schema], indent=4, ensure_ascii=False)
 
 # ==============================================================================
-# II. FUNCIONES DE IMPORTACIÓN (NUEVO CÓDIGO)
+# II. FUNCIONES DE IMPORTACIÓN 
 # ==============================================================================
 
 def _get_or_create_genero_id(db: Session, genero_nombre: str) -> Optional[int]:
@@ -215,7 +212,7 @@ def import_peliculas_from_data(
 
 
 # ==============================================================================
-# II. FUNCIONES CRUD/BÚSQUEDA (Resto del Código)
+# II. FUNCIONES CRUD/BÚSQUEDA 
 # ==============================================================================
 
 # --- Servicio 1: Añadir película ---

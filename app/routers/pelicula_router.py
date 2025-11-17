@@ -20,9 +20,8 @@ from app.schemas.pelicula import (
     PeliculaReadWithGenero,
     PeliculaUpdate,
 )
-# Solo se mantiene la importación de genero_service, que se usa en rutas que no
-# llaman a pelicula_service (para evitar dependencia mutua)
-from app.services import genero_service 
+# Se mantiene la importación de genero_service, y pelicula_service
+from app.services import genero_service, pelicula_service 
 from app.models.pelicula import PeliculaORM  # Necesario para la firma de tipos en el servicio
 
 # Creación del Router (Todas las rutas inician con /peliculas)
@@ -80,14 +79,14 @@ def create_pelicula_from_form(
     """
     [POST] Procesa los datos del formulario, valida, crea la nueva película y redirige.
     """
-    # Importación LOCAL: Asegura que el servicio se cargue solo cuando se llama a esta función
-    from app.services import pelicula_service
+    # Asegura que el servicio se cargue solo cuando se llama a esta función
+    #from app.services import pelicula_service
 
     try:
         if not genero_service.get_genero_by_id(db, genero_id):
             raise HTTPException(status_code=400, detail="Género ID no válido.")
 
-        # Lógica defensiva para actores
+        # Lógica para actores
         if actores:
             actores_list = [a.strip() for a in actores.split(",") if a.strip()]
         else:
@@ -119,14 +118,11 @@ def create_pelicula_from_form(
 
 
 # Usar el nuevo Esquema en la API:
-# Antes: @router.get("/{pelicula_id}", response_model=PeliculaRead)
 @router.get("/{pelicula_id}/api", response_model=PeliculaReadWithGenero)
 def read_pelicula_by_id_api(pelicula_id: int, db: Session = Depends(get_db)):
     """
     [GET] Obtiene una película por ID, incluyendo datos de género (API JSON).
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id)
     if pelicula is None:
@@ -142,8 +138,6 @@ def view_pelicula_detalle(
     """
     [GET] Muestra el detalle de una película específica por su ID.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     pelicula = pelicula_service.get_pelicula_detalle(db, pelicula_id)
     if not pelicula:
@@ -163,8 +157,6 @@ def view_editar_pelicula(
     """
     [GET] Muestra el formulario con los datos pre-rellenados de una película existente.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     try:
         # 1. Obtener la película y verificar su existencia
@@ -220,8 +212,6 @@ def update_pelicula_from_form(
     """
     [POST] Procesa la actualización de los datos de una película existente.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     try:
         if not genero_service.get_genero_by_id(db, genero_id):
@@ -276,8 +266,6 @@ def execute_eliminar_pelicula(pelicula_id: int, db: Session = Depends(get_db)):
     """
     [POST] Ejecuta el servicio de eliminación definitiva de la película.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     try:
         success = pelicula_service.delete_pelicula(db, pelicula_id)
@@ -311,8 +299,6 @@ def create_pelicula_api(
     """
     [POST] Añade una nueva película a la cartelera (JSON Payload).
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     return pelicula_service.add_pelicula(db=db, pelicula=pelicula)
 
@@ -322,8 +308,6 @@ def read_peliculas_disponibles_api(db: Session = Depends(get_db)):
     """
     [GET] Obtiene una lista de todas las películas actualmente disponibles (JSON).
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     return pelicula_service.get_peliculas_disponibles(db=db)
 
@@ -337,8 +321,6 @@ def update_pelicula_endpoint_api(
     """
     [PUT] Actualiza los datos de una película existente por su ID (JSON Payload).
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     db_pelicula = pelicula_service.update_pelicula(db, pelicula_id, pelicula_update)
     if db_pelicula is None:
@@ -353,8 +335,6 @@ def delete_pelicula_endpoint_api(
     """
     [DELETE] Elimina una película de la base de datos por su ID.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     success = pelicula_service.delete_pelicula(db, pelicula_id)
     if not success:
@@ -362,7 +342,7 @@ def delete_pelicula_endpoint_api(
 
         
 # ==============================================================================
-# 3. RUTAS DE EXPORTACIÓN (CSV / JSON) - Funcionalidad Extra
+# 3. RUTAS DE EXPORTACIÓN (CSV / JSON)
 # ==============================================================================
 
 @router.get("/export/csv", tags=["Exportación"])
@@ -378,8 +358,6 @@ def export_peliculas_csv_endpoint(
     
     Utiliza Response para asegurar el Content-Disposition y evitar fallos de descarga.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     csv_data = pelicula_service.export_peliculas_to_csv(
         db=db,
@@ -410,8 +388,6 @@ def export_peliculas_json_endpoint(
     """
     [GET] **Exportar Catálogo** - Devuelve la lista de películas filtradas en formato **JSON**.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
 
     json_str = pelicula_service.export_peliculas_to_json(
         db=db,
@@ -430,7 +406,7 @@ def export_peliculas_json_endpoint(
     )
 
 # ==============================================================================
-# 4. RUTAS DE IMPORTACIÓN (CSV / JSON) - Funcionalidad Extra
+# 4. RUTAS DE IMPORTACIÓN (CSV / JSON)
 # ==============================================================================
 
 @router.post("/import/csv", tags=["Importación"])
@@ -441,10 +417,7 @@ async def import_peliculas_csv_endpoint(
 ):
     """
     [POST] **Importar Catálogo** - Recibe un archivo CSV y procesa las filas para insertar/actualizar películas.
-    """
-    # Importación LOCAL
-    from app.services import pelicula_service
-    from app.services import genero_service 
+    """ 
 
     if file.content_type not in ["text/csv", "application/vnd.ms-excel"]:
         raise HTTPException(
@@ -505,9 +478,6 @@ async def import_peliculas_json_endpoint(
     """
     [POST] **Importar Catálogo** - Recibe un archivo JSON y procesa los datos para insertar/actualizar películas.
     """
-    # Importación LOCAL
-    from app.services import pelicula_service
-    from app.services import genero_service 
 
     if file.content_type != "application/json":
         raise HTTPException(

@@ -5,9 +5,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from typing import List, Optional, Any
 
 
-# --- Esquema Base ---
 # Campos comunes que se comparten al crear y leer.
-# Corresponde 1 a 1 con how_to_do.md
 class PeliculaBase(BaseModel):
     titulo: str
     duracion: int
@@ -28,7 +26,6 @@ class PeliculaCreate(PeliculaBase):
     genero_id: int # Al crear, solo pasamos el ID del género
 
 # --- Esquema de Actualización (PUT /peliculas/{id}) ---
-# Todos los campos son opcionales para permitir actualizaciones parciales.
 class PeliculaUpdate(BaseModel):
     titulo: Optional[str] = None
     duracion: Optional[int] = None
@@ -51,7 +48,7 @@ class PeliculaRead(PeliculaBase):
     # Configuración para que Pydantic pueda leer desde el modelo ORM (SQLAlchemy)
     model_config = ConfigDict(from_attributes=True)
 
-# (Opcional pero recomendado: Schema para lectura con género anidado)
+# Schema para lectura con género anidado)
 # Si quisieramos devolver el objeto género completo en lugar del ID:
 #
 # from .genero import GeneroRead # (Suponiendo que Kary crea este schema)
@@ -66,7 +63,7 @@ class PeliculaReadWithGenero(PeliculaRead):
     # Sobreescribe el campo de la base para incluir el objeto ORM cargado
     genero: GeneroRead
     
-# --- Esquema de Importación (NUEVO) ---
+# --- Esquema de Importación---
 # Se utiliza para validar las filas de datos recibidas en CSV/JSON antes de la inserción.
 class PeliculaImport(BaseModel):
     # Campos requeridos para la inserción
@@ -77,7 +74,7 @@ class PeliculaImport(BaseModel):
     # Relación por nombre de género (temporal para importación)
     genero_nombre: str # Usaremos el nombre para buscar el ID
 
-    # Campos opcionales (debe coincidir con las columnas del CSV/JSON de exportación)
+    # Campos que deben coincidir con las columnas del CSV/JSON de exportación
     director: Optional[str] = None
     descripcion: Optional[str] = None
     trailer: Optional[str] = None

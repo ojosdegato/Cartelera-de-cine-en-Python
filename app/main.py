@@ -36,7 +36,7 @@ from app.database.db import get_db
 
 
 # Importamos modelos para asegurar la creación de tablas
-from app.models import pelicula, genero  # noqa: F401
+from app.models import pelicula, genero  
 
 # Routers de la aplicación
 from app.routers import pelicula_router, genero_router

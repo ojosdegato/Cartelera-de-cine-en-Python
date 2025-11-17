@@ -14,14 +14,13 @@ from pathlib import Path
 # Obtener el directorio base para referencias de ruta
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 1. RUTAS DE ARCHIVOS DE INFRAESTRUCTURA (Movidas desde main.py)
-#DB_FILE_PATH = "./database/cartelera_cine.db"
+# 1. RUTAS DE ARCHIVOS DE INFRAESTRUCTURA 
 DB_FILE_PATH = "sqlite:///database/db.db"
 
 #SCHEMA_FILE_PATH = "database/db.sql"
 #SEED_FILE_PATH   = "database/db.sql"
 
-BASE_DIR = Path(__file__).resolve().parent  # si config.py está en app/, esto es app/
+BASE_DIR = Path(__file__).resolve().parent  # config.py está en app/
 
 SQL_PATH = BASE_DIR / "database" / "db.sql"
 
