@@ -248,7 +248,7 @@
         <pre><code>.
 ├── app/
 │   ├── main.py
-│   ├── models/
+│   ├── models/              # Capa de Persistencia: Definiciones de Tablas (SQLAlchemy ORM)
 │   │   ├── pelicula.py      # Entidad Pelicula
 │   │   ├── genero.py        # Entidad Genero
 │   │   ├── sala.py          # Entidad Sala
@@ -256,19 +256,35 @@
 │   │   ├── venta.py         # Entidad Venta
 │   │   ├── socio.py         # Entidad Socio
 │   │   └── login.py         # Entidad Login / Usuario
-│   ├── routes/
-│   │   ├── peliculas.py     # Rutas CRUD Peliculas
+│   ├── schemas/             # Capa de Serialización/Validación (Pydantic, Marshmallow, etc.)
+│   │   ├── pelicula.py      # Esquemas de entrada y salida para Peliculas
+│   │   ├── genero.py        # Esquemas de entrada y salida para Generos
+│   │   ├── sala.py          # Esquemas de entrada y salida para Salas
+│   │   ├── horario.py       # Esquemas de entrada y salida para Horarios
+│   │   ├── venta.py         # Esquemas de entrada y salida para Ventas
+│   │   ├── socio.py         # Esquemas de entrada y salida para Socios
+│   │   └── auth.py          # Esquemas para Login/Registro/Tokens
+│   ├── services/            # Capa de Lógica de Negocio (El 'cerebro' de la aplicación)
+│   │   ├── pelicula.py      # Funciones CRUD y validaciones de negocio para Pelicula
+│   │   ├── genero.py        # Funciones CRUD y validaciones de negocio para Genero
+│   │   ├── sala.py          # Funciones CRUD y validaciones de negocio para Sala
+│   │   ├── horario.py       # Funciones CRUD y validaciones de negocio para Horario
+│   │   ├── venta.py         # Funciones CRUD y validaciones de negocio para Venta
+│   │   ├── socio.py         # Funciones CRUD y validaciones de negocio para Socio
+│   │   └── auth.py          # Lógica para manejo de usuarios, *hashing* de contraseñas y tokens
+│   ├── routes/              # Capa de Controladores: Manejo de Peticiones HTTP
+│   │   ├── peliculas.py     # Rutas CRUD Peliculas (Llama a `services/pelicula.py`)
 │   │   ├── generos.py       # Rutas CRUD Generos
 │   │   ├── salas.py         # Rutas CRUD Salas
 │   │   ├── horarios.py      # Rutas CRUD Horarios
 │   │   ├── ventas.py        # Rutas CRUD Ventas
 │   │   ├── socios.py        # Rutas CRUD Socios
-│   │   └── login.py         # Rutas de autenticación / login
+│   │   └── login.py         # Rutas de autenticación / login (Llama a `services/auth.py`)
 │   ├── database/
-│   │   ├── db.py            # Motor de conexión SQLAlchemy
-│   │   ├── db.sql               # Schema y seed de la base de datos
-│   │   └── cartelera_cine.db    # Base de datos SQLite
-│   ├── templates/
+│   │   ├── db.py            # Motor de conexión SQLAlchemy y sesión (dependencia inyectada)
+│   │   ├── db.sql           # Schema y seed de la base de datos (Script SQL)
+│   │   └── db.db	     # Base de datos SQLite
+│   ├── templates/           # Vistas (Jinja2, etc.)
 │   │   ├── base.html        # Layout común
 │   │   ├── peliculas/       # Vistas HTML de peliculas
 │   │   ├── generos/         # Vistas HTML de generos
@@ -277,13 +293,17 @@
 │   │   ├── ventas/          # Vistas HTML de ventas
 │   │   ├── socios/          # Vistas HTML de socios
 │   │   └── login/           # Vistas HTML de login/autenticación
-│   └── static/
-│       ├── css/
-│       ├── js/
-│       └── img/
-├── requirements.txt
-├── README.html
-└── run.py</code></pre>
+│   └── static/ 
+│       ├── Bootstrap/       # Hojas de estilo y JS de Bootstrap
+│       │   ├── css/         # Archivos CSS de Bootstrap (bootstrap.min.css)
+│       │   └── js/          # Archivos JavaScript de Bootstrap (bootstrap.bundle.min.js)           
+│       ├── css/             # Hojas de estilo (CSS3/Bootstrap)
+│       ├── js/              # Archivos JavaScript
+│       └── img/             # Imágenes y assets
+├── requirements.txt         # Dependencias del proyecto (Framework, ORM, Pydantic, etc.)
+├── README.html              # Documentación inicial y guía de instalación
+└── run.py                   # Script de inicio del servidor
+</code></pre>
     </section>
 
     <section id="entidades" aria-labelledby="entidades-heading">
