@@ -923,7 +923,7 @@ uvicorn app.main:app --reload
         <h2 id="scripts-bd-heading">🗄️ Scripts de inicialización de la base de datos</h2>
         <p>
             La base de datos principal del proyecto es un fichero
-            <strong>SQLite</strong> llamado <code>cartelera_cine.db</code>,
+            <strong>SQLite</strong> llamado <code>bd.db</code>,
             ubicado en <code>app/database/</code>.
         </p>
 
@@ -935,14 +935,14 @@ uvicorn app.main:app --reload
 
         <h3>2. Crear o recrear la base de datos</h3>
         <p>Desde la raíz del proyecto:</p>
-        <pre><code>python -m app.cartelera_cine.db
+        <pre><code>python -m app.bd_cine.db
         </code></pre>
 
         <p>
             Este script se encarga de:
         </p>
         <ul>
-            <li>Crear el fichero <code>cartelera_cine.db</code> si no existe.</li>
+            <li>Crear el fichero <code>bd.db</code> si no existe.</li>
             <li>Generar las tablas correspondientes a las entidades:
                 <code>peliculas</code>, <code>generos</code>, <code>salas</code>,
                 <code>horarios</code>, <code>ventas</code>, <code>logins</code> y <code>socios</code>.
@@ -953,8 +953,8 @@ uvicorn app.main:app --reload
         <h3>3. Regenerar la base de datos (entornos de desarrollo)</h3>
         <p class="subtle">
             En desarrollo es habitual borrar el fichero
-            <code>cartelera_cine.db</code> y volver a ejecutar
-            <code>python -m app.cartelera_cine.db</code> para partir de un estado limpio.
+            <code>bd.db</code> y volver a ejecutar
+            <code>python -m app.bd.db</code> para partir de un estado limpio.
         </p>
     </section>
 
