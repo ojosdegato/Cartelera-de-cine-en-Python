@@ -1,4 +1,3 @@
-
 # app/main.py
 # Punto de entrada principal de la aplicación FastAPI.
 # Contiene solo:
