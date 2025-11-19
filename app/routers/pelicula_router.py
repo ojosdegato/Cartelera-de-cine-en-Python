@@ -149,7 +149,7 @@ def view_pelicula_detalle(
     )
 
 
-# === RUTA: EDITAR PELÍCULA (UPDATE - GET) ===
+# === RUTA: EDITAR PELÍCULA ===
 @router.get("/editar/{pelicula_id}", tags=["Web UI"])
 def view_editar_pelicula(
     pelicula_id: int, request: Request, db: Session = Depends(get_db)
@@ -187,7 +187,7 @@ def view_editar_pelicula(
         raise HTTPException(status_code=500, detail="Error interno del servidor.")
 
 
-# === RUTA: EDITAR PELÍCULA (UPDATE - POST) ===
+# === RUTA: EDITAR PELÍCULA ===
 @router.post(
     "/editar/{pelicula_id}", tags=["Web UI"], status_code=status.HTTP_303_SEE_OTHER
 )

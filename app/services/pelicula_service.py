@@ -22,9 +22,6 @@ from pydantic import ValidationError
 def _format_pelicula_for_csv_export(pelicula: PeliculaORM) -> Dict[str, Any]:
     """
     Formatea un objeto PeliculaORM a un diccionario aplanado para el exportación CSV.
-    
-    CORRECCIÓN: Se aplica programación defensiva para asegurar que los campos opcionales
-    (que pueden ser None) siempre sean serializados como cadenas ("").
     """
     data = {
         "id": pelicula.id,
